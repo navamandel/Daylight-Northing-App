@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootNorthing"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/etUtm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="12-digit UTM (e.g., 360896737089)"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/etDateTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Date &amp; time (YYYY-MM-DD HH:mm)"
+        android:inputType="text" />
+
+    <RadioGroup
+        android:id="@+id/rgObject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <RadioButton
+            android:id="@+id/rbSun"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sun"
+            android:checked="true" />
+
+        <RadioButton
+            android:id="@+id/rbStars"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stars" />
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/btnPlot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PLOT ANGULAR MILS"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/btnReset"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="RESET"
+        android:layout_marginTop="8dp" />
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/lineChart"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="12dp" />
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Status: ready"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>
