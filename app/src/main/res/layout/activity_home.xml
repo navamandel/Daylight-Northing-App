@@ -1,27 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Mode"
-        android:textSize="24sp"
-        android:gravity="center" />
-
-    <Button
-        android:id="@+id/btn_daylight"
+    <!-- Your existing home content -->
+    <LinearLayout
+        android:id="@+id/homeContent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Daylight/Darkness Calculator" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <Button
-        android:id="@+id/btn_northing"
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enter the Following Values:"
+            android:textSize="24sp"
+            android:gravity="center" />
+
+        <Button
+            android:id="@+id/btn_daylight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Daylight/Darkness Calculator" />
+
+        <Button
+            android:id="@+id/btn_converter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Converter" />
+
+        <Button
+            android:id="@+id/btn_northing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Northing System" />
+
+        <Button
+            android:id="@+id/btn_northingstarmap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Azimuth Calculator" />
+
+
+
+    </LinearLayout>
+
+    <!-- Compose overlay that blocks until valid -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/requiredInputsCompose"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Northing System" />
+        android:layout_height="match_parent" />
 
-</LinearLayout>
+</FrameLayout>

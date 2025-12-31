@@ -19,4 +19,15 @@ object UtmParser {
             northing = northing
         )
     }
+
+    fun parse14Digits(raw: String, zone: Int, hemisphereNorth: Boolean): Utm {
+        val s = raw.trim().replace(" ", "")
+        require(s.length == 14 && s.all { it.isDigit() }) { "UTM must be exactly 14 digits" }
+
+        val easting = s.substring(0, 7).toDouble()
+        val northing = s.substring(7, 14).toDouble()
+
+        return Utm(zone, hemisphereNorth, easting, northing)
+    }
+
 }
