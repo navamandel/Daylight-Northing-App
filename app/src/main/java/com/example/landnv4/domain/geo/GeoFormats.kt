@@ -1,10 +1,12 @@
 package com.example.landnv4.domain.geo
 
+import com.example.landnv4.domain.geo.converters.Dms
+import com.example.landnv4.domain.geo.converters.Ecef
 import kotlin.math.*
 
 object GeoFormats {
-
-    data class Dms(val d: Int, val m: Int, val s: Double, val hemi: Char)
+/*
+    // data class Dms(val d: Int, val m: Int, val s: Double, val hemi: Char)
 
     fun decimalToDms(value: Double, isLat: Boolean): Dms {
         val hemi = when {
@@ -22,7 +24,7 @@ object GeoFormats {
     }
 
     fun formatDms(dms: Dms): String =
-        "%d°%02d'%05.2f\"%c".format(dms.d, dms.m, dms.s, dms.hemi)
+        "%d°%02d'%05.2f\"%c".format(dms.latDeg, dms.latMin, dms.latSec, dms.latHem)
 
     fun formatDdm(value: Double, isLat: Boolean): String {
         val hemi = when {
@@ -38,7 +40,7 @@ object GeoFormats {
     }
 
     // Web Mercator (EPSG:3857) from lat/lon degrees
-    data class Mercator(val x: Double, val y: Double)
+    // data class Mercator(val x: Double, val y: Double)
 
     fun latLonToWebMercator(latDeg: Double, lonDeg: Double): Mercator {
         val R = 6378137.0
@@ -49,7 +51,7 @@ object GeoFormats {
     }
 
     // ECEF (WGS84) (alt assumed 0)
-    data class Ecef(val x: Double, val y: Double, val z: Double)
+    // data class Ecef(val x: Double, val y: Double, val z: Double)
 
     fun latLonToEcef(latDeg: Double, lonDeg: Double, alt: Double = 0.0): Ecef {
         val a = 6378137.0
@@ -70,5 +72,5 @@ object GeoFormats {
         val y = (N + alt) * cosLat * sinLon
         val z = (N * (1 - e2) + alt) * sinLat
         return Ecef(x, y, z)
-    }
+    }*/
 }

@@ -1,5 +1,8 @@
-package com.example.landnv4
+package com.example.landnv4.data.inputs
 
+import com.example.landnv4.domain.geo.Utm
+import com.example.landnv4.domain.geo.UtmParser.toUtm
+import com.example.landnv4.domain.geo.converters.UtmConverter
 import java.time.LocalDate
 
 object HomeInputValidation {
@@ -32,18 +35,19 @@ object HomeInputValidation {
         return null
     }
 
-    fun validateUtm14(s: String): String? {
-        val v = s.trim().replace(" ", "")
-        if (v.length != 14 || !v.all { it.isDigit() }) return "UTM must be exactly 14 digits"
+    fun validateUtm13(u: Utm): String? {
+        /*val v = s.trim().replace(" ", "")
+        if (v.length != 13 || !v.all { it.isDigit() }) return "UTM must be exactly 13 digits"
         if (v.all { it == '0' }) return "UTM cannot be all zeros"
 
-        val easting = v.substring(0, 7).toInt()
-        val northing = v.substring(7, 14).toInt()
+        val easting = v.substring(0, 6).toInt()
+        val northing = v.substring(6, 13).toInt()
 
         // Very loose sanity bounds (won't reject real values but catches typos)
         if (easting !in 100000..9000000) return "UTM easting looks invalid"
-        if (northing !in 0..10000000) return "UTM northing looks invalid"
+        if (northing !in 0..10000000) return "UTM northing looks invalid"*/
 
-        return null
+        val errors = UtmConverter.validate(u)
+        return if (!errors.isEmpty()) errors.joinToString("; ") else null
     }
 }

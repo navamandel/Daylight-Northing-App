@@ -1,4 +1,4 @@
-package com.example.landnv4
+package com.example.landnv4.ui.northing.starmap
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -8,11 +8,10 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntSize
@@ -21,7 +20,6 @@ import com.example.landnv4.domain.astro.AstroMath
 import com.example.landnv4.domain.astro.TimeUtil
 import com.example.landnv4.domain.model.Observer
 import com.example.landnv4.domain.model.Star
-import com.example.landnv4.ui.northing.starmap.StarMapViewModel
 import kotlin.math.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,12 +56,12 @@ fun StarMapScreen(vm: StarMapViewModel) {
 
             when {
                 ui.loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
                 ui.error != null -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text("Error: ${ui.error}")
                     }
                 }
@@ -178,8 +176,8 @@ private fun projectToDome(
     val r = radius * t.coerceIn(0f, 1f)            // clamp to dome
     val azRad = Math.toRadians(azDeg)
 
-    val x = center.x + (r * kotlin.math.sin(azRad)).toFloat()
-    val y = center.y - (r * kotlin.math.cos(azRad)).toFloat()
+    val x = center.x + (r * sin(azRad)).toFloat()
+    val y = center.y - (r * cos(azRad)).toFloat()
 
     return Offset(x, y)
 }
@@ -188,7 +186,7 @@ private fun projectToDome(
 private fun pickNearest(
     points: List<StarDrawPoint>,
     tap: Offset,
-    canvasSize: androidx.compose.ui.geometry.Size,
+    canvasSize: Size,
     scale: Float,
     pan: Offset
 ): StarDrawPoint? {

@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.LAndNV4" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- customize colors later -->
+    <style name="Theme.LandNv4" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Use theme-driven colors, not hardcoded white/black -->
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorPrimaryVariant">@color/color_primary_variant</item>
+        <item name="colorOnPrimary">@color/color_on_primary</item>
+
+        <item name="colorSecondary">@color/color_secondary</item>
+        <item name="colorSecondaryVariant">@color/color_secondary_variant</item>
+        <item name="colorOnSecondary">@color/color_on_secondary</item>
+
+        <!-- Material surface/background/text -->
+        <item name="android:windowBackground">@color/app_background</item>
+        <item name="colorSurface">@color/app_surface</item>
+        <item name="colorOnSurface">@color/app_on_surface</item>
     </style>
 
 </resources>

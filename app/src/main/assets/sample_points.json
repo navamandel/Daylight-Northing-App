@@ -1,0 +1,153 @@
+{
+  "anchoring_points": [
+    {
+      "utm": 3263651001001,
+      "location": "Hill Alpha",
+      "height": 812,
+      "heightType": "METERS",
+      "name": "Anchor A1"
+    },
+    {
+      "utm": 3263651001002,
+      "location": "Hill Bravo",
+      "height": 790,
+      "heightType": "METERS",
+      "name": "Anchor A2"
+    },
+    {
+      "utm": 3263651001003,
+      "location": "Ridge East",
+      "height": 2600,
+      "heightType": "FEET",
+      "name": "Anchor A3"
+    },
+    {
+      "utm": 3263651001004,
+      "location": "Plateau North",
+      "height": 2450,
+      "heightType": "FEET",
+      "name": "Anchor A4"
+    },
+    {
+      "utm": 3263651001005,
+      "location": "Observation Knoll",
+      "height": 835,
+      "heightType": "METERS",
+      "name": "Anchor A5"
+    }
+  ],
+
+  "northing_points": [
+    {
+      "utm": 3263662002001,
+      "location": "North OP 1",
+      "height": 640,
+      "heightType": "METERS",
+      "name": "Northing N1"
+    },
+    {
+      "utm": 3263662002002,
+      "location": "North OP 2",
+      "height": 675,
+      "heightType": "METERS",
+      "name": "Northing N2"
+    },
+    {
+      "utm": 3263662002003,
+      "location": "Forest Edge",
+      "height": 2100,
+      "heightType": "FEET",
+      "name": "Northing N3"
+    },
+    {
+      "utm": 3263662002004,
+      "location": "Rocky Spur",
+      "height": 2250,
+      "heightType": "FEET",
+      "name": "Northing N4"
+    },
+    {
+      "utm": 3263662002005,
+      "location": "North Lookout",
+      "height": 690,
+      "heightType": "METERS",
+      "name": "Northing N5"
+    }
+  ],
+
+  "validating_points": [
+    {
+      "utm": 3263663003001,
+      "location": "Calibration Pad",
+      "height": 710,
+      "heightType": "METERS",
+      "name": "Validator V1"
+    },
+    {
+      "utm": 3263663003002,
+      "location": "Test Site West",
+      "height": 735,
+      "heightType": "METERS",
+      "name": "Validator V2"
+    },
+    {
+      "utm": 3263663003003,
+      "location": "Gravel Field",
+      "height": 2150,
+      "heightType": "FEET",
+      "name": "Validator V3"
+    },
+    {
+      "utm": 3263663003004,
+      "location": "Concrete Marker",
+      "height": 2225,
+      "heightType": "FEET",
+      "name": "Validator V4"
+    },
+    {
+      "utm": 3263663003005,
+      "location": "Validation Ridge",
+      "height": 760,
+      "heightType": "METERS",
+      "name": "Validator V5"
+    }
+  ],
+
+  "targets": [
+    {
+      "utm": 3263674004001,
+      "location": "Target Valley",
+      "height": 430,
+      "heightType": "METERS",
+      "name": "Target T1"
+    },
+    {
+      "utm": 3263674004002,
+      "location": "Dry Riverbed",
+      "height": 455,
+      "heightType": "METERS",
+      "name": "Target T2"
+    },
+    {
+      "utm": 3263674004003,
+      "location": "Urban Edge",
+      "height": 1480,
+      "heightType": "FEET",
+      "name": "Target T3"
+    },
+    {
+      "utm": 3263674004004,
+      "location": "Industrial Yard",
+      "height": 1520,
+      "heightType": "FEET",
+      "name": "Target T4"
+    },
+    {
+      "utm": 3263674004005,
+      "location": "Target Ridge",
+      "height": 510,
+      "heightType": "METERS",
+      "name": "Target T5"
+    }
+  ]
+}

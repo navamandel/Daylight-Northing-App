@@ -1,14 +1,19 @@
 package com.example.landnv4
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import com.example.landnv4.data.db.AppDatabase
-import com.example.landnv4.data.db.StarEntity
+import com.example.landnv4.data.db.stars.StarEntity
 import com.example.landnv4.data.repo.StarRepository
+import com.example.landnv4.ui.inputs.RequiredInputsDialog
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
@@ -19,8 +24,9 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
-class NorthingActivity : AppCompatActivity() {
+class NorthingActivity : BaseActivity() {
 
+    private lateinit var toolbar: com.google.android.material.appbar.MaterialToolbar
     private lateinit var etUtm: EditText
     private lateinit var etDateTime: EditText
     private lateinit var rbSun: RadioButton
@@ -38,6 +44,8 @@ class NorthingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_northing)
+
+        setupToolbar("Northing")
 
         repo = StarRepository(this)
 
@@ -60,6 +68,49 @@ class NorthingActivity : AppCompatActivity() {
 
         btnPlot.setOnClickListener { onPlotClicked() }
         btnReset.setOnClickListener { resetUi() }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_toolbar, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+
+            android.R.id.home -> {
+                // Back button (up arrow)
+                onBackPressedDispatcher.onBackPressed()
+                true
+            }
+
+            R.id.action_home -> {
+                // Go to HomeActivity
+                val intent = Intent(this, HomeActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                startActivity(intent)
+                true
+            }
+
+            R.id.action_required_inputs -> {
+                // Open your dialog/screen
+                RequiredInputsDialog().show(supportFragmentManager, "RequiredInputs")
+                true
+            }
+
+            R.id.action_theme -> {
+                val current = AppCompatDelegate.getDefaultNightMode()
+                val next = if (current == AppCompatDelegate.MODE_NIGHT_YES)
+                    AppCompatDelegate.MODE_NIGHT_NO
+                else
+                    AppCompatDelegate.MODE_NIGHT_YES
+
+                AppCompatDelegate.setDefaultNightMode(next)
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun setupChart() {

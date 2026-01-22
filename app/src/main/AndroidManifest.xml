@@ -11,21 +11,23 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.LAndNV4">
+        android:theme="@style/Theme.LandNv4">
         <activity
             android:name=".HomeActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.LAndNV4">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name=".DaylightActivity" />
         <activity android:name=".NorthingActivity" />
         <activity android:name=".NorthingStarMapActivity" />
+        <activity android:name=".ConverterActivity" />
+        <activity android:name=".DataBankActivity" />
+        <activity android:name=".PointsListActivity" />
+        <activity android:name=".PointEditActivity" />
+        <activity android:name=".YeilutActivity" />
 
     </application>
 

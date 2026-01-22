@@ -2,6 +2,7 @@ package com.example.landnv4.data.repo
 
 import android.content.Context
 import com.example.landnv4.App
+import com.example.landnv4.data.db.AppDatabase
 import com.example.landnv4.data.loader.CsvStarLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -9,7 +10,8 @@ import kotlinx.coroutines.withContext
 class StarRepository(private val context: Context) {
 
     suspend fun ensurePreloadedFromAssets() = withContext(Dispatchers.IO) {
-        val dao = App.db.starDao()
+        val db = AppDatabase.getInstance(context)
+        val dao = db.starDao()
         if (dao.countStars() > 0) return@withContext
 
         val stars = CsvStarLoader.loadHygStars(

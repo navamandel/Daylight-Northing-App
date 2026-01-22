@@ -1,15 +1,16 @@
-package com.example.landnv4
+package com.example.landnv4.ui.northing.starmap
 
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.landnv4.domain.astro.AstroMath
 import com.example.landnv4.domain.astro.TimeUtil
-import com.example.landnv4.domain.geo.UtmConverter
+import com.example.landnv4.domain.geo.converters.UtmConverter
 import com.example.landnv4.domain.geo.UtmParser
 import com.example.landnv4.domain.model.Observer
 import com.example.landnv4.domain.model.Star
@@ -53,7 +54,7 @@ fun StarPickDialog(
                     )
                     Column(Modifier.weight(1f)) {
                         Text("Hemisphere", style = MaterialTheme.typography.labelMedium)
-                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Switch(
                                 checked = northHemisphere,
                                 onCheckedChange = { northHemisphere = it; error = null; resultText = null }
@@ -76,8 +77,8 @@ fun StarPickDialog(
             Button(onClick = {
                 try {
                     val z = zone.toIntOrNull() ?: error("Zone required")
-                    val utmObj = UtmParser.parse12Digits(utm, z, northHemisphere)
-                    val (lat, lon) = UtmConverter.toLatLonWgs84(utmObj)
+                    val utmObj = UtmParser.parseUtm(utm.take(6), utm.substring(6,13), z, northHemisphere)
+                    val (lat, lon) = UtmConverter.utmToLatLon(utmObj)
                     val observer = Observer(latDeg = lat, lonDeg = lon)
 
                     val horiz = AstroMath.starToHorizontal(star, observer, TimeUtil.nowUtc())

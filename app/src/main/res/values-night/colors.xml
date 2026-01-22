@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fg">#FFFFFF</color>
+    <color name="bg">#000000</color>
+
+    <!-- Same names, but DARK-friendly values -->
+    <color name="color_primary">#90CAF9</color>
+    <color name="color_primary_variant">#64B5F6</color>
+    <color name="color_on_primary">#0B0B0B</color>
+
+    <color name="color_secondary">#80CBC4</color>
+    <color name="color_secondary_variant">#4DB6AC</color>
+    <color name="color_on_secondary">#0B0B0B</color>
+
+    <!-- App surfaces (DARK) -->
+    <color name="app_background">#121212</color>
+    <color name="app_surface">#1E1E1E</color>
+    <color name="app_on_surface">#EEEEEE</color>
+</resources>

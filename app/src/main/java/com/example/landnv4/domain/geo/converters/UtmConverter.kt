@@ -1,16 +1,34 @@
-package com.example.landnv4.domain.geo
+package com.example.landnv4.domain.geo.converters
 
+import com.example.landnv4.domain.geo.InputParsing.isFiniteReal
+import com.example.landnv4.domain.geo.Utm
+import com.example.landnv4.domain.geo.Wgs84
 import org.locationtech.proj4j.CRSFactory
 import org.locationtech.proj4j.CoordinateTransformFactory
 import org.locationtech.proj4j.ProjCoordinate
 
 object UtmConverter {
 
+    fun validate(p: Utm): List<String> {
+        val errors = mutableListOf<String>()
+        if (p.zone !in 1..60) errors += "UTM zone must be 1..60"
+        if (!p.easting.isFiniteReal() || p.easting !in 100_000.0..900_000.0) errors += "UTM easting must be ~100000..900000"
+        if (!p.northing.isFiniteReal() || p.northing !in 0.0..10_000_000.0) errors += "UTM northing must be 0..10000000"
+
+        return errors
+    }
+
+    fun format(p: Utm): String {
+        val hemi = if (p.hemisphereNorth) "N" else "S"
+        val base = "${p.zone}$hemi E=%.0f N=%.0f".format(p.easting, p.northing)
+        return base
+    }
+
     /**
      * Converts UTM -> (lat, lon) in WGS84.
      * Returns Pair(latDeg, lonDeg)
      */
-    fun toLatLonWgs84(utm: Utm): Pair<Double, Double> {
+    fun utmToLatLon(utm: Utm): LatLon {
         val crsFactory = CRSFactory()
         val ctFactory = CoordinateTransformFactory()
 
@@ -32,7 +50,7 @@ object UtmConverter {
         transform.transform(ProjCoordinate(utm.easting, utm.northing), out)
 
         // EPSG:4326: x=lon, y=lat
-        return out.y to out.x
+        return LatLon(out.x, out.y)
     }
 
     /**

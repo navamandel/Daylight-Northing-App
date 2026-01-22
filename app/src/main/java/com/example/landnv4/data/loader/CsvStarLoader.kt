@@ -1,7 +1,7 @@
 package com.example.landnv4.data.loader
 
 import android.content.Context
-import com.example.landnv4.data.db.StarEntity
+import com.example.landnv4.data.db.stars.StarEntity
 import java.io.BufferedReader
 import java.io.InputStreamReader
 

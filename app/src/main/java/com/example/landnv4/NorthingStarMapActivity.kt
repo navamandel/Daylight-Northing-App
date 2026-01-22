@@ -6,7 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.viewmodel.compose.viewModel
-// import com.example.landnv4.StarMapScreen
+import com.example.landnv4.ui.northing.starmap.StarMapScreen
+// import com.example.landnv4.ui.northing.starmap.StarMapScreen
 import com.example.landnv4.ui.northing.starmap.StarMapViewModel
 import com.example.landnv4.ui.theme.LAndNV4Theme   // change if needed
 

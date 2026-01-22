@@ -1,4 +1,4 @@
-package com.example.landnv4.data.db
+package com.example.landnv4.data.db.stars
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
