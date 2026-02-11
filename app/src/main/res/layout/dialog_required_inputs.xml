@@ -2,14 +2,35 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical" >
 
-    <include
-        android:id="@+id/include_form"
-        layout="@layout/include_form" />
+    <LinearLayout
+        android:id="@+id/form_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:theme="@style/ThemeOverlay.LandN.Form.Minimal">
 
-    <!--
+        <include
+            android:id="@+id/include_form"
+            layout="@layout/include_form"/>
+
+    </LinearLayout>
+
+
+<!--
+    <LinearLayout
+        android:id="@+id/form_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.LandN.Form.Minimal">
+
+        <include
+            android:id="@+id/include_form"
+            layout="@layout/include_form"/>
+    </LinearLayout>
+
+
     <EditText
         android:id="@+id/et_utm"
         android:layout_width="match_parent"
@@ -86,14 +107,8 @@
         android:layout_height="wrap_content"
         android:textColor="@android:color/holo_red_light"
         android:layout_marginTop="12dp"
-        android:text="" />
+        android:layout_marginHorizontal="12dp"
+        android:visibility="gone" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Tip: Use the edit icon on the home screen any time to update these."
-        android:textSize="12sp"
-        android:alpha="0.7" />
 
 </LinearLayout>

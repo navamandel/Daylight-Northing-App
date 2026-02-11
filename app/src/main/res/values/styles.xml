@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- =========================    FORM STYLE THEME OVERLAYS    ========================= -->
+
+    <!-- ### FORM STYLE OPTION A: CARD ### -->
+    <style name="ThemeOverlay.LandN.Form.Card" parent="">
+        <!-- Text fields -->
+        <item name="textInputStyle">@style/Widget.LandN.TextInputLayout.Filled</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.LandN.Form.Card.Label.Hemisphere</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Material3.LabelLarge</item>
+
+        <item name="dropdownMenuStyle">@style/LandN.TextInput.Filled.Dropdown</item>
+
+        <!-- Buttons -->
+        <item name="materialButtonOutlinedStyle">@style/LandN.Button.Outlined</item>
+        <item name="materialButtonStyle">@style/LandN.Button.Filled</item>
+
+        <!-- Card default look (for MaterialCardView) -->
+        <item name="materialCardViewStyle">@style/LandN.Card.Form</item>
+
+    </style>
+
+    <!-- FORM STYLE OPTION B: MINIMAL -->
+    <style name="ThemeOverlay.LandN.Form.Minimal" parent="">
+        <item name="textInputStyle">@style/LandN.TextInput.Outlined.Minimal</item>
+
+        <item name="dropdownMenuStyle">@style/LandN.TextInput.Outlined.Dropdown</item>
+
+        <item name="materialButtonOutlinedStyle">@style/LandN.Button.Outlined.Minimal</item>
+        <item name="materialButtonStyle">@style/LandN.Button.Filled.Minimal</item>
+
+        <item name="materialCardViewStyle">@style/LandN.Card.Form.Minimal</item>
+
+        <item name="android:textColor">?attr/colorOnSurface</item>
+
+    </style>
+
+
+    <!-- =========================    EXPANDABLE CONTAINERS THEME OVERLAYS    ========================= -->
+
+    <!-- ### EXPANDABLE STYLE OPTION A ### -->
+    <style name="ThemeOverlay.LandN.Section.A" parent="">
+        <item name="sectionHeaderStyle">@style/Widget.LandN.Header.A</item>
+        <item name="sectionContentStyle">@style/Widget.LandN.Content.A</item>
+
+        <item name="materialCardViewStyle">@style/Widget.LandN.SectionCard.A</item>
+
+        <item name="materialIconButtonStyle">@style/Widget.LandN.MaterialIconButton.A</item>
+    </style>
+
+    <!-- ### EXPANDABLE STYLE OPTION B ### -->
+    <style name="ThemeOverlay.LandN.Section.B" parent="">
+        <item name="sectionHeaderStyle">@style/Widget.LandN.Header.B</item>
+        <item name="sectionContentStyle">@style/Widget.LandN.Content.B</item>
+
+        <item name="materialCardViewStyle">@style/Widget.LandN.SectionCard.B</item>
+
+        <item name="materialIconButtonStyle">@style/Widget.LandN.MaterialIconButton.B</item>
+    </style>
+
+
+    <!-- =========================    RESULTS THEME OVERLAYS    ========================= -->
+
+    <!-- ### RESULTS CONTAINER W BACKGROUND -->
+    <style name="ThemeOverlay.LandN.Results.A" parent="">
+        <item name="resultsCard">@style/Widget.LandN.ResultsCard.A</item>
+    </style>
+
+    <!-- ### RESULTS CONTAINER WO BACKGROUND -->
+    <style name="ThemeOverlay.LandN.Results.B" parent="">
+        <item name="resultsCard">@style/Widget.LandN.ResultsCard.B</item>
+    </style>
+
+
+    <!-- =============  TEXT INPUT STYLES  ============ -->
+
+    <!-- Text Input: Minimal Style (Minimal Form) -->
+    <style name="LandN.TextInput.Outlined.Minimal" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">10dp</item>
+        <item name="boxCornerRadiusTopEnd">10dp</item>
+        <item name="boxCornerRadiusBottomStart">10dp</item>
+        <item name="boxCornerRadiusBottomEnd">10dp</item>
+
+        <item name="hintTextColor">@color/text_secondary</item>
+        <item name="boxBackgroundColor">@android:color/transparent</item>
+
+        <item name="shapeAppearance">@style/ShapeAppearance.LandN.Input</item>
+    </style>
+
+    <!-- Text Input: Card Style (Card Form) -->
+    <style name="Widget.LandN.TextInputLayout.Filled" parent="Widget.Material3.TextInputLayout.FilledBox">
+        <!--
+        <item name="boxBackgroundColor">@color/card_input_bg</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">1dp</item>
+        <item name="boxStrokeColor">@color/card_input_stroke</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.LandN.InputRounded</item>
+        -->
+
+        <item name="boxBackgroundMode">filled</item>
+
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+
+        <!-- Colors -->
+        <item name="boxBackgroundColor">@color/til_fill</item>
+        <item name="boxStrokeColor">@color/til_stroke</item>
+        <item name="hintTextColor">@color/til_hint</item>
+    </style>
+
+
+    <!-- =============  DROPDOWN MENU STYLES  ============ -->
+
+    <!-- Dropdown Menu: Minimal Style -->
+    <style name="LandN.TextInput.Outlined.Dropdown"
+        parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+
+        <item name="android:background">@null</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.LandN.Input</item>
+    </style>
+
+    <!-- Dropdown Menu: Card Style -->
+    <style name="LandN.TextInput.Filled.Dropdown"
+        parent="Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu">
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+
+        <!-- Colors -->
+        <item name="boxBackgroundColor">@color/til_fill</item>
+        <item name="boxStrokeColor">@color/til_stroke</item>
+        <item name="hintTextColor">@color/til_hint</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.LandN.InputRounded</item>
+    </style>
+
+
+
+    <!-- =========================  BUTTON STYLES  ========================= -->
+    <style name="LandN.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">14dp</item>
+    </style>
+
+    <style name="LandN.Button.Filled" parent="Widget.Material3.Button">
+        <item name="cornerRadius">14dp</item>
+        <item name="backgroundColor">@color/color_primary_variant</item>
+    </style>
+
+    <!-- Minimal: slightly smaller radius -->
+    <style name="LandN.Button.Outlined.Minimal" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">10dp</item>
+    </style>
+
+    <style name="LandN.Button.Filled.Minimal" parent="Widget.Material3.Button">
+        <item name="cornerRadius">10dp</item>
+    </style>
+
+    <!-- =========================  CARD STYLES (MaterialCardView)  ========================= -->
+
+    <!-- Card Style: Form Card -->
+    <style name="LandN.Card.Form" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/card_bg</item>
+        <item name="cardElevation">2dp</item>          <!-- subtle shadow -->
+        <item name="strokeWidth">1dp</item>           <!-- subtle border -->
+        <item name="strokeColor">@color/card_stroke</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.LandN.SectionRounded</item>
+
+    </style>
+
+    <!-- Card Style: Form Minimal -->
+    <style name="LandN.Card.Form.Minimal" parent="Widget.MaterialComponents.CardView">
+        <item name="shapeAppearance">@style/ShapeAppearance.LandN.Form.Minimal</item>
+
+        <item name="cardBackgroundColor">@android:color/transparent</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+
+    <!-- Card Style: Expandable Section A -->
+    <style name="Widget.LandN.SectionCard.A" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/card_bg</item>
+        <item name="cardElevation">2dp</item>          <!-- subtle shadow -->
+        <item name="strokeWidth">1dp</item>           <!-- subtle border -->
+        <item name="strokeColor">@color/card_stroke</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.LandN.SectionRounded</item>
+    </style>
+
+    <!-- Card Style: Expandable Section B -->
+    <style name="Widget.LandN.SectionCard.B" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/card_b_bg</item>
+        <item name="strokeColor">@color/card_b_stroke</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cardElevation">1dp</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.LandN.SectionRounded</item>
+    </style>
+
+    <style name="Widget.LandN.Header.A" parent="">
+        <item name="android:background">@color/card_header_bg</item>
+    </style>
+
+    <style name="Widget.LandN.Header.B" parent="">
+        <item name="android:background">@color/card_b_header_bg</item>
+    </style>
+
+    <style name="Widget.LandN.MaterialIconButton.A" parent="Widget.Material3.Button.IconButton">
+        <item name="backgroundColor">@android:color/transparent</item>
+        <item name="iconTint">@color/brand</item>
+    </style>
+
+    <style name="Widget.LandN.MaterialIconButton.B" parent="Widget.Material3.Button.IconButton">
+        <item name="backgroundColor">@android:color/transparent</item>
+        <item name="iconTint">@color/brand_b</item>
+    </style>
+
+    <style name="Widget.LandN.Content.A" parent="">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="Widget.LandN.Content.B" parent="">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+
+    <style name="Widget.LandN.ResultsCard.A" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@android:color/transparent</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">0dp</item>
+
+        <item name="cardUseCompatPadding">false</item>
+        <item name="cardPreventCornerOverlap">false</item>
+    </style>
+
+    <style name="Widget.LandN.ResultsCard.B" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">?attr/colorSurfaceContainerLow</item>
+        <item name="cardElevation">2dp</item>
+        <item name="strokeWidth">1dp</item>
+
+        <item name="cardUseCompatPadding">true</item>
+    </style>
+
+
+    <style name="TextAppearance.LandN.SectionLabel" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+
+    <style name="ShapeAppearanceOverlay.LandN.InputRounded">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.LandN.SectionRounded">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+
+
+    <style name="ShapeAppearanceOverlay.LandN" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="ShapeAppearance.LandN.Input" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">14dp</item>
+    </style>
+
+    <style name="ShapeAppearance.LandN.Form" parent="ShapeAppearance.Material3.MediumComponent"/>
+    <style name="ShapeAppearance.LandN.Form.Minimal" parent="ShapeAppearance.Material3.SmallComponent"/>
+
+    <style name="SquaredFilledButton" parent="Widget.Material3.Button">
+        <item name="cornerRadius">6dp</item>  <!-- try 4dp–8dp -->
+    </style>
+
+    <style name="TextAppearance.LandN.Form.Card.Label.Hemisphere"
+        parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+
+</resources>

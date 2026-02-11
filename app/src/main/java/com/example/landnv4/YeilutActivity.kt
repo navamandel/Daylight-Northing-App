@@ -17,9 +17,14 @@ import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import android.app.AlertDialog
+import android.graphics.Color
+import android.util.Log
+import android.view.LayoutInflater
 import android.widget.AdapterView
 import android.widget.Button
 import android.widget.*
+import androidx.appcompat.view.ContextThemeWrapper
+import androidx.compose.runtime.key
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -31,50 +36,42 @@ import com.example.landnv4.domain.geo.UtmParser.parseUtm
 import com.example.landnv4.ui.databank.PointItem
 import kotlin.getValue
 import com.example.landnv4.data.inputs.AppInputsStore.load
-import com.example.landnv4.databinding.ActivityConverterBinding
+import com.example.landnv4.databinding.IncludeFormBinding
+import com.example.landnv4.databinding.IncludeResultsBinding
 import com.example.landnv4.domain.geo.DistanceCalc.distance3D
 import com.example.landnv4.domain.geo.DistanceCalc.feetToMeters
 import com.example.landnv4.domain.geo.DistanceCalc.metersToFeet
 import com.example.landnv4.domain.geo.Utm
+import com.example.landnv4.ui.ExpandableSection
 import com.example.landnv4.ui.databank.PointsListViewModel
 import com.example.landnv4.ui.ResultItem
 import com.example.landnv4.ui.ResultsAdapter
 import com.example.landnv4.ui.form.FormAdapter
 import com.example.landnv4.ui.form.FormItem
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 
 
 class YeilutActivity : BaseActivity()  {
-    companion object {
-        const val EXTRA_CURRENT_UTM = "extra_current_utm"
-        const val EXTRA_CURRENT_HEIGHT = "extra_current_height"
-        const val EXTRA_CURRENT_HEIGHT_TYPE = "extra_current_height_type" // "METERS" / "FEET"
-    }
 
     private lateinit var binding: ActivityDistanceCalculatorBinding
 
     private val vm: PointsListViewModel by viewModels()
 
-    // A
-    private lateinit var swUseCurrentA: com.google.android.material.switchmaterial.SwitchMaterial
-    private lateinit var etUtmA: com.google.android.material.textfield.TextInputEditText
-    private lateinit var etHeightA: com.google.android.material.textfield.TextInputEditText
-    private lateinit var spUnitA: Spinner
-
-    // B
-    private lateinit var swUseTargetB: com.google.android.material.switchmaterial.SwitchMaterial
-    private lateinit var spPointType: Spinner
-    private lateinit var tilUtmB: com.google.android.material.textfield.TextInputLayout
-    private lateinit var etUtmB: com.google.android.material.textfield.TextInputEditText
-    private lateinit var etHeightB: com.google.android.material.textfield.TextInputEditText
-    private lateinit var spUnitB: Spinner
-
-    private lateinit var btnSwap: Button
-    private lateinit var btnCalc: Button
+    override fun getLayoutResId() = R.layout.activity_distance_calculator
+    private lateinit var btnCalc: MaterialButton
+    private lateinit var btnCont: MaterialButton
+    private lateinit var resultsBinding: IncludeResultsBinding
+    private lateinit var secR: ExpandableSection
     private lateinit var resultsAdapter: ResultsAdapter
+    private lateinit var formABinding: IncludeFormBinding
+    private lateinit var formBBinding: IncludeFormBinding
+    private lateinit var secA: ExpandableSection
+    private lateinit var secB: ExpandableSection
     private lateinit var formAdapterA: FormAdapter
     private lateinit var formAdapterB: FormAdapter
 
-    private val KEY_SWITCH = "switch"
+    private val KEY_SPINNER_A = "spinner_a"
 
     private val KEY_UTM_A = "utm_a"
     private val KEY_UTM_A_EST = "utm_a_easting"
@@ -86,6 +83,7 @@ class YeilutActivity : BaseActivity()  {
     private val KEY_HEIGHT_A_VAL = "height_a_value"
     private val KEY_HEIGHT_A_UT = "height_a_unit"
 
+    private val KEY_SPINNER_B = "spinner_b"
     private val KEY_UTM_B = "utm_b"
     private val KEY_UTM_B_EST = "utm_b_easting"
     private val KEY_UTM_B_NRT = "utm_b_northing"
@@ -98,30 +96,143 @@ class YeilutActivity : BaseActivity()  {
 
     private lateinit var tvErr: TextView
 
-    private var ignoreFirstSelection = true
-
     private var currentUtm: Utm? = null
-    private lateinit var tvStatus: TextView
+    private lateinit var utmA: Utm
+    private var heightA: Double = 0.0
 
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityDistanceCalculatorBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+        val root = contentContainer.getChildAt(0)
+        binding = ActivityDistanceCalculatorBinding.bind(root)
 
         setupToolbar("Distance Calculator")
 
-        // Bind
-        spPointType = binding.spPointType
-        btnCalc = binding.btnCalculate
+        val themedInflater = LayoutInflater.from(
+            ContextThemeWrapper(this, R.style.ThemeOverlay_LandN_Form_Card)
+        )
+        val themedResInflater = LayoutInflater.from(
+            ContextThemeWrapper(this, R.style.ThemeOverlay_LandN_Results_A)
+        )
+
+        formABinding = IncludeFormBinding.inflate(
+            themedInflater,
+            binding.sectionPointA.findViewById<FrameLayout>(R.id.content),
+            true
+        )
+        formBBinding = IncludeFormBinding.inflate(
+            themedInflater,
+            binding.sectionPointB.findViewById<FrameLayout>(R.id.content),
+            true
+        )
+        resultsBinding = IncludeResultsBinding.inflate(
+            themedResInflater,
+            binding.sectionResults.findViewById<FrameLayout>(R.id.content),
+            true
+        )
+
+
+        secA = ExpandableSection(
+            root = binding.sectionPointA.findViewById<MaterialCardView>(R.id.card),
+            header = binding.sectionPointA.findViewById<LinearLayout>(R.id.header),
+            content = binding.sectionPointA.findViewById<FrameLayout>(R.id.content),
+            btnToggle = binding.sectionPointA.findViewById(R.id.btnToggle),
+            btnClear = binding.sectionPointA.findViewById(R.id.btnClear),
+            btnAction = binding.sectionPointA.findViewById(R.id.btnAction)
+        ).apply {
+            setTitle("Point A")
+            setActionVisible("Continue")
+            setExpanded(true, false)
+            wireClicks()
+        }
+
+        btnCont = binding.sectionPointA.findViewById(R.id.btnAction)
+
+        secB = ExpandableSection(
+            root = binding.sectionPointB.findViewById<MaterialCardView>(R.id.card),
+            header = binding.sectionPointB.findViewById<LinearLayout>(R.id.header),
+            content = binding.sectionPointB.findViewById<FrameLayout>(R.id.content),
+            btnToggle = binding.sectionPointB.findViewById(R.id.btnToggle),
+            btnClear = binding.sectionPointB.findViewById(R.id.btnClear),
+            btnAction = binding.sectionPointB.findViewById(R.id.btnAction)
+        ).apply {
+            setTitle("Point B")
+            setActionVisible("Calculate")
+            setExpanded(false, false)
+            wireClicks()
+        }
+
+        btnCalc = binding.sectionPointB.findViewById(R.id.btnAction)
+
+        secR = ExpandableSection(
+            root = binding.sectionResults.findViewById<MaterialCardView>(R.id.card),
+            header = binding.sectionResults.findViewById<LinearLayout>(R.id.header),
+            content = binding.sectionResults.findViewById<FrameLayout>(R.id.content),
+            btnToggle = binding.sectionResults.findViewById(R.id.btnToggle),
+            btnClear = binding.sectionResults.findViewById(R.id.btnClear)
+        ).apply {
+            setTitle("Results")
+            setClearVisible(true)
+            wireClicks()
+        }
+
+        val storedInfo = load(this)
+        currentUtm = storedInfo?.utm13
+
+        val pointsSpOptions = if (currentUtm != null) {
+            listOf(
+                "initial" to "Select point type…",
+                "curr_utm" to "Current Utm",
+                BankType.ANCHORING.name to BankType.ANCHORING.title(),
+                BankType.NORTHING.name to BankType.NORTHING.title(),
+                BankType.VALIDATING.name to BankType.VALIDATING.title(),
+                BankType.TARGETS.name to BankType.TARGETS.title()
+            )
+        } else {
+            listOf(
+                "initial" to "Select point type…",
+                BankType.ANCHORING.name to BankType.ANCHORING.title(),
+                BankType.NORTHING.name to BankType.NORTHING.title(),
+                BankType.VALIDATING.name to BankType.VALIDATING.title(),
+                BankType.TARGETS.name to BankType.TARGETS.title()
+            )
+        }
 
         formAdapterA = FormAdapter(listOf(
-            FormItem.Switch(
-                key = KEY_SWITCH,
-                label = "Use Current Utm",
-                updateKey = "UTM_A"
+            FormItem.Spinner(
+                key = KEY_SPINNER_A,
+                label = "Choose from stored points",
+                staticOptions = pointsSpOptions,
+                onItemChanged = {
+                    val selected = formAdapterA.state.getString(KEY_SPINNER_A)
+                    //val offset = if (pointsSpOptions.size == 5) 1 else 2
+
+                    when(selected) {
+                        "initial" -> return@Spinner
+                        "curr_utm" -> {
+                            formAdapterA.state.set(KEY_UTM_A_EST, currentUtm?.easting?.toString().orEmpty())
+                            formAdapterA.state.set(KEY_UTM_A_NRT, currentUtm?.northing?.toString().orEmpty())
+                            formAdapterA.state.set(KEY_UTM_A_ZONE, currentUtm?.zone?.toString().orEmpty())
+                            formAdapterA.state.set(KEY_UTM_A_HEMI, currentUtm?.hemisphereNorth)
+
+                            formAdapterA.state.set(KEY_HEIGHT_A_VAL, "0.0")
+                            formAdapterA.state.set(KEY_HEIGHT_A_UT, "METERS")
+
+                            //formAdapterA.state.set("show_current", true)
+                            formAdapterA.notifyDataSetChanged()
+                        }
+                        else -> {
+                            try {
+                                formABinding.tvError.visibility = View.GONE
+                                openPickPointDialog(BankType.valueOf(selected.toString()), true)
+                            } catch (e: Exception) {
+                                formABinding.tvError.visibility = View.VISIBLE
+                                formABinding.tvError.text = e.message
+                            }
+                        }
+                    }
+                }
             ),
             FormItem.UtmItem(
                 key = KEY_UTM_A,
@@ -138,12 +249,45 @@ class YeilutActivity : BaseActivity()  {
                 unitKey = KEY_HEIGHT_A_UT
             )
         ))
-        binding.includeFormA.formTitle.text = "Point A"
-        binding.includeFormA.formSubtitle.visibility = View.GONE
-        binding.includeFormA.rvInput.adapter = formAdapterA
-        binding.includeFormA.rvInput.layoutManager = LinearLayoutManager(this)
+        formABinding.formTitle.visibility = View.GONE
+        formABinding.rvInput.adapter = formAdapterA
+        formABinding.rvInput.layoutManager = LinearLayoutManager(this)
 
         formAdapterB = FormAdapter(listOf(
+            FormItem.Spinner(
+                key = KEY_SPINNER_B,
+                label = "Choose from stored points",
+                staticOptions = pointsSpOptions,
+                onItemChanged = {
+                    val selected = formAdapterB.state.getString(KEY_SPINNER_B)
+                    //val offset = if (pointsSpOptions.size == 5) 1 else 2
+
+                    when(selected) {
+                        "initial" -> return@Spinner
+                        "curr_utm" -> {
+                            formAdapterB.state.set(KEY_UTM_B_EST, currentUtm?.easting?.toString().orEmpty())
+                            formAdapterB.state.set(KEY_UTM_B_NRT, currentUtm?.northing?.toString().orEmpty())
+                            formAdapterB.state.set(KEY_UTM_B_ZONE, currentUtm?.zone?.toString().orEmpty())
+                            formAdapterB.state.set(KEY_UTM_B_HEMI, currentUtm?.hemisphereNorth)
+
+                            formAdapterB.state.set(KEY_HEIGHT_B_VAL, "0.0")
+                            formAdapterB.state.set(KEY_HEIGHT_B_UT, "METERS")
+
+                            //formAdapterB.state.set("show_current", true)
+                            formAdapterB.notifyDataSetChanged()
+                        }
+                        else -> {
+                            try {
+                                formBBinding.tvError.visibility = View.GONE
+                                openPickPointDialog(BankType.valueOf(selected.toString()), false)
+                            } catch (e: Exception) {
+                                formBBinding.tvError.visibility = View.VISIBLE
+                                formBBinding.tvError.text = e.message
+                            }
+                        }
+                    }
+                }
+            ),
             FormItem.UtmItem(
                 key = KEY_UTM_B,
                 label = "Utm B",
@@ -159,41 +303,92 @@ class YeilutActivity : BaseActivity()  {
                 unitKey = KEY_HEIGHT_B_UT
             )
         ))
-        binding.includeFormB.formTitle.text = "Point B"
-        binding.includeFormB.formSubtitle.visibility = View.GONE
-        binding.includeFormB.rvInput.adapter = formAdapterB
-        binding.includeFormB.rvInput.layoutManager = LinearLayoutManager(this)
+        formBBinding.formTitle.visibility = View.GONE
+        formBBinding.rvInput.adapter = formAdapterB
+        formBBinding.rvInput.layoutManager = LinearLayoutManager(this)
 
         resultsAdapter = ResultsAdapter()
 
-        binding.includeResults.rvResults.adapter = resultsAdapter
-        binding.includeResults.rvResults.layoutManager = LinearLayoutManager(this)
-        binding.includeResults.rvResults.isNestedScrollingEnabled = false
+        resultsBinding.rvResults.adapter = resultsAdapter
+        resultsBinding.rvResults.layoutManager = LinearLayoutManager(this)
+        resultsBinding.rvResults.isNestedScrollingEnabled = false
+        resultsBinding.tvResultsTitle.visibility = View.GONE
 
-        tvErr = findViewById(R.id.tvError)
+        makeCardFlat(listOf(
+            formABinding.formRoot,
+            formBBinding.formRoot,
+            resultsBinding.resultsRoot
+        ))
 
-        // Units spinners
-        val unitLabels = listOf("Meters", "Feet")
-        val unitAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, unitLabels).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        //tvErr = findViewById(R.id.tvError)
+
+        /*formAdapterA.state.addListener { key ->
+            if (key == KEY_SPINNER_A) {
+                val selected = formAdapterA.state.getString(KEY_SPINNER_A)
+                //val offset = if (pointsSpOptions.size == 5) 1 else 2
+
+                when(selected) {
+                    "initial" -> return@addListener
+                    "curr_utm" -> {
+                        formAdapterA.state.set(KEY_UTM_A_EST, currentUtm?.easting?.toString().orEmpty())
+                        formAdapterA.state.set(KEY_UTM_A_NRT, currentUtm?.northing?.toString().orEmpty())
+                        formAdapterA.state.set(KEY_UTM_A_ZONE, currentUtm?.zone?.toString().orEmpty())
+                        formAdapterA.state.set(KEY_UTM_A_HEMI, currentUtm?.hemisphereNorth)
+
+                        formAdapterA.state.set(KEY_HEIGHT_A_VAL, "0.0")
+                        formAdapterA.state.set(KEY_HEIGHT_A_UT, "METERS")
+
+                        //formAdapterA.state.set("show_current", true)
+                        formAdapterA.notifyDataSetChanged()
+                    }
+                    else -> {
+                        try {
+                            openPickPointDialog(BankType.valueOf(selected.toString()), true)
+                        } catch (e: Exception) {
+                            tvErr.text = e.message
+                        }
+                    }
+                }
+            }
         }
 
-        //spUnitA.adapter = unitAdapter
-        //spUnitB.adapter = unitAdapter
-        //spUnitA.setSelection(0)
-        //spUnitB.setSelection(0)
+        formAdapterB.state.addListener { key ->
+            if (key == KEY_SPINNER_B) {
+                val selected = formAdapterB.state.getString(KEY_SPINNER_B)
+                //val offset = if (pointsSpOptions.size == 5) 1 else 2
 
-        val storedInfo = load(this)
-        currentUtm = storedInfo?.utm13
+                when(selected) {
+                    "initial" -> return@addListener
+                    "curr_utm" -> {
+                        formAdapterB.state.set(KEY_UTM_B_EST, currentUtm?.easting?.toString().orEmpty())
+                        formAdapterB.state.set(KEY_UTM_B_NRT, currentUtm?.northing?.toString().orEmpty())
+                        formAdapterB.state.set(KEY_UTM_B_ZONE, currentUtm?.zone?.toString().orEmpty())
+                        formAdapterB.state.set(KEY_UTM_B_HEMI, currentUtm?.hemisphereNorth)
 
-        setupPoints()
-        setupUseCurrentA()
+                        formAdapterB.state.set(KEY_HEIGHT_B_VAL, "0.0")
+                        formAdapterB.state.set(KEY_HEIGHT_B_UT, "METERS")
+
+                        //formAdapterB.state.set("show_current", true)
+                        formAdapterB.notifyDataSetChanged()
+                    }
+                    else -> {
+                        try {
+                            openPickPointDialog(BankType.valueOf(selected.toString()), false)
+                        } catch (e: Exception) {
+                            tvErr.text = e.message
+                        }
+                    }
+                }
+            }
+        }*/
+
         setupButtons()
     }
 
-    private fun setupPoints() {
+    /*private fun setupPoints() {
         val types = BankType.values().toList()
-        val typess = listOf("Select point type…") + BankType.values().map { it.title() }
+        val typess = listOf("Select point type…", "Current Utm") +
+                BankType.entries.map { it.title() }
 
         spPointType.adapter = ArrayAdapter(
             this,
@@ -216,16 +411,16 @@ class YeilutActivity : BaseActivity()  {
                 if (position == 0) return
 
                 val selectedType = types[position - 1]
-                openPickPointDialog(selectedType)
+                openPickPointDialog(selectedType, true)
                 spPointType.setSelection(0)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {}
         }
 
-    }
+    }*/
 
-    private fun openPickPointDialog(type: BankType) {
+    private fun openPickPointDialog(type: BankType, isA: Boolean) {
         lifecycleScope.launch {
             val points = vm.getPointsOnce(type)
 
@@ -252,19 +447,16 @@ class YeilutActivity : BaseActivity()  {
                     selectedIndex = which
                     // enable buttons once a selection exists (we do this in onShow below)
                 }
-                .setNegativeButton("Set Point A", null)
                 .setNeutralButton("Cancel", null)   // we override click later
-                .setPositiveButton("Set Point B", null)  // override click later
+                .setPositiveButton("Set Point ${if(isA) "A" else "B"}", null)  // override click later
                 .create()
 
             dialog.setOnShowListener {
-                val btnA: Button = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                val btnB: Button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                val btn: Button = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
 
                 fun updateButtons() {
                     val enabled = selectedIndex != -1
-                    btnA.isEnabled = enabled
-                    btnB.isEnabled = enabled
+                    btn.isEnabled = enabled
                 }
 
                 updateButtons()
@@ -276,35 +468,32 @@ class YeilutActivity : BaseActivity()  {
                     updateButtons()
                 }
 
-                btnA.setOnClickListener {
+                btn.setOnClickListener {
                     if (selectedIndex == -1) return@setOnClickListener
                     val chosen = points[selectedIndex]
 
-                    formAdapterA.state.set(KEY_UTM_A_EST, chosen.utm.easting.toString())
-                    formAdapterA.state.set(KEY_UTM_A_NRT, chosen.utm.northing.toString())
-                    formAdapterA.state.set(KEY_UTM_A_ZONE, chosen.utm.zone)
-                    formAdapterA.state.set(KEY_UTM_A_HEMI, chosen.utm.hemisphereNorth)
+                    if (isA) {
+                        formAdapterA.state.set(KEY_UTM_A_EST, chosen.utm.easting.toString())
+                        formAdapterA.state.set(KEY_UTM_A_NRT, chosen.utm.northing.toString())
+                        formAdapterA.state.set(KEY_UTM_A_ZONE, chosen.utm.zone.toString())
+                        formAdapterA.state.set(KEY_UTM_A_HEMI, chosen.utm.hemisphereNorth)
 
-                    formAdapterA.state.set(KEY_HEIGHT_A_VAL, chosen.height.toString())
-                    formAdapterA.state.set(KEY_HEIGHT_A_UT, chosen.heightType.name)
+                        formAdapterA.state.set(KEY_HEIGHT_A_VAL, chosen.height.toString())
+                        formAdapterA.state.set(KEY_HEIGHT_A_UT, chosen.heightType.name)
 
-                    //etUtmA.setText(chosen.utm.toString())
-                    //etHeightA.setText(chosen.height.toString())
-                    //spUnitA.setSelection(if (chosen.heightType == HeightType.METERS) 0 else 1)
-                    dialog.dismiss()
-                }
+                        formAdapterA.notifyDataSetChanged()
+                    } else {
+                        formAdapterB.state.set(KEY_UTM_B_EST, chosen.utm.easting.toString())
+                        formAdapterB.state.set(KEY_UTM_B_NRT, chosen.utm.northing.toString())
+                        formAdapterB.state.set(KEY_UTM_B_ZONE, chosen.utm.zone.toString())
+                        formAdapterB.state.set(KEY_UTM_B_HEMI, chosen.utm.hemisphereNorth)
 
-                btnB.setOnClickListener {
-                    if (selectedIndex == -1) return@setOnClickListener
-                    val chosen = points[selectedIndex]
+                        formAdapterB.state.set(KEY_HEIGHT_B_VAL, chosen.height.toString())
+                        formAdapterB.state.set(KEY_HEIGHT_B_UT, chosen.heightType.name)
 
-                    formAdapterB.state.set(KEY_UTM_B_EST, chosen.utm.easting.toString())
-                    formAdapterB.state.set(KEY_UTM_B_NRT, chosen.utm.northing.toString())
-                    formAdapterB.state.set(KEY_UTM_B_ZONE, chosen.utm.zone)
-                    formAdapterB.state.set(KEY_UTM_B_HEMI, chosen.utm.hemisphereNorth)
+                        formAdapterB.notifyDataSetChanged()
+                    }
 
-                    formAdapterB.state.set(KEY_HEIGHT_B_VAL, chosen.height.toString())
-                    formAdapterB.state.set(KEY_HEIGHT_B_UT, chosen.heightType.name)
 
                     //etUtmB.setText(chosen.utm.toString())
                     //etHeightB.setText(chosen.height.toString())
@@ -318,7 +507,7 @@ class YeilutActivity : BaseActivity()  {
     }
 
 
-    private fun setupUseCurrentA() {
+    /*private fun setupUseCurrentA() {
         val hasCurrent = currentUtm != null
 
         formAdapterA.state.setEnabled(KEY_SWITCH, hasCurrent)
@@ -328,12 +517,14 @@ class YeilutActivity : BaseActivity()  {
                 if (formAdapterA.state.isEnabled(key) && key == KEY_SWITCH) {
                     val checked = formAdapterA.state.getBoolean(key) ?: false
                     if (checked) {
-                        formAdapterA.state.set(KEY_UTM_A_EST, currentUtm?.easting.toString())
-                        formAdapterA.state.set(KEY_UTM_A_NRT, currentUtm?.northing.toString())
-                        formAdapterA.state.set(KEY_UTM_A_ZONE, currentUtm?.zone)
+                        formAdapterA.state.set(KEY_UTM_A_EST, currentUtm?.easting?.toString().orEmpty())
+                        formAdapterA.state.set(KEY_UTM_A_NRT, currentUtm?.northing?.toString().orEmpty())
+                        formAdapterA.state.set(KEY_UTM_A_ZONE, currentUtm?.zone?.toString().orEmpty())
                         formAdapterA.state.set(KEY_UTM_A_HEMI, currentUtm?.hemisphereNorth)
 
                         formAdapterA.state.set("show_current", true)
+                        formAdapterA.notifyDataSetChanged()
+
                     } else if (formAdapterA.state.getBoolean("show_current") ?: false) {
                         formAdapterA.state.clearValue(KEY_UTM_A_EST)
                         formAdapterA.state.clearValue(KEY_UTM_A_NRT)
@@ -341,16 +532,15 @@ class YeilutActivity : BaseActivity()  {
                         formAdapterA.state.clearValue(KEY_UTM_A_HEMI)
 
                         formAdapterA.state.set("show_current", false)
+                        formAdapterA.notifyDataSetChanged()
                     }
 
-                    formAdapterA.state.setEnabled(KEY_UTM_A_EST, !checked)
-                    formAdapterA.state.setEnabled(KEY_UTM_A_NRT, !checked)
-                    formAdapterA.state.setEnabled(KEY_UTM_A_ZONE, !checked)
-                    formAdapterA.state.setEnabled(KEY_UTM_A_HEMI, !checked)
+                    formAdapterA.state.setEnabled(KEY_UTM_A, !checked)
+                    formAdapterA.safeNotifyItemChanged(0, FormAdapter.Payload.ENABLED)
                 }
             }
         }
-    }
+    }*/
 
 
 
@@ -419,8 +609,82 @@ class YeilutActivity : BaseActivity()  {
 
 
     private fun setupButtons() {
+        var isSetA = false
+        btnCont.setOnClickListener {
+            setPointA(formABinding.tvError)
+            isSetA = true
+        }
 
         btnCalc.setOnClickListener {
+            val tvErrB = formBBinding.tvError
+            var utmB: Utm
+            var heightB: Double
+
+            try {
+                if (!isSetA) setPointA(formABinding.tvError)
+
+                tvErrB.visibility = View.VISIBLE
+                tvErrB.text = ""
+
+                val eB = formAdapterB.state.getString(KEY_UTM_B_EST)
+                    ?.trim()
+                    ?: throw IllegalArgumentException("Missing easting")
+
+                val nB = formAdapterB.state.getString(KEY_UTM_B_NRT)
+                    ?.trim()
+                    ?: throw IllegalArgumentException("Missing northing")
+
+                val zB = formAdapterB.state.getString(KEY_UTM_B_ZONE)
+                    ?.trim()
+                    ?: throw IllegalArgumentException("Missing zone")
+
+                val hB = formAdapterB.state.getBoolean(KEY_UTM_B_HEMI) ?: true
+
+                utmB = parseUtm(eB, nB, zB, hB)
+
+                val heighttB = formAdapterB.state.getString(KEY_HEIGHT_B_VAL)
+                    ?.trim()
+                    ?.toDoubleOrNull()
+                    ?: throw IllegalArgumentException("Missing/invalid height")
+                val unitB = formAdapterB.state.getString(KEY_HEIGHT_B_UT) ?: "METERS"
+
+                val uB = HeightType.valueOf(unitB)
+
+                heightB = if (uB == HeightType.FEET) feetToMeters(heighttB) else heighttB
+
+                tvErrB.visibility = View.GONE
+
+                try {
+                    val d2d = distanceMeters(utmA, utmB)
+                    val d3d = distance3D(utmA, utmB, heightB - heightA)
+
+                    resultsAdapter.submitList(
+                        listOf(
+                            ResultItem("2D (ground)", "%.2f m, %.2f ft".format(d2d, metersToFeet(d2d))),
+                            ResultItem("3D (with height)", "%.2f m, %.2f ft".format(d3d, metersToFeet(d3d))),
+                        )
+                    )
+                    applyEffectivenessUI(d3d)
+
+                    secB.setExpanded(false)
+
+                    resultsBinding.root.visibility = View.VISIBLE
+                    resultsBinding.resultsContainer.visibility = View.VISIBLE
+                    binding.sectionResults.visibility = View.VISIBLE
+                } catch (e: Exception) {
+
+                    tvErr.text = e.message ?: "Calculation failed"
+                }
+
+            } catch (e: Exception) {
+                tvErrB.text = e.message ?: "Invalid UTM Coordinates"
+            }
+
+
+        }
+
+
+        /*btnCalc.setOnClickListener {
             tvErr.text = ""
 
             try {
@@ -461,8 +725,49 @@ class YeilutActivity : BaseActivity()  {
                 )
                 applyEffectivenessUI(d3d)
             } catch (e: Exception) {
-                resultsAdapter.submitList(listOf(ResultItem("Error", e.message ?: "Unknown error")))
+                binding.tvError.text = e.message
             }
+        }*/
+    }
+
+    private fun setPointA(tvErrA: TextView) {
+        tvErrA.visibility = View.VISIBLE
+        tvErrA.text = ""
+
+        try {
+            val eA = formAdapterA.state.getString(KEY_UTM_A_EST)
+                ?.trim()
+                ?: throw IllegalArgumentException("Missing easting")
+
+            val nA = formAdapterA.state.getString(KEY_UTM_A_NRT)
+                ?.trim()
+                ?: throw IllegalArgumentException("Missing northing")
+
+            val zA = formAdapterA.state.getString(KEY_UTM_A_ZONE)
+                ?.trim()
+                ?: throw IllegalArgumentException("Missing zone")
+
+            val hA = formAdapterA.state.getBoolean(KEY_UTM_A_HEMI) ?: true
+
+            utmA = parseUtm(eA, nA, zA, hA)
+
+            val heighttA = formAdapterA.state.getString(KEY_HEIGHT_A_VAL)
+                ?.trim()
+                ?.toDoubleOrNull()
+                ?: throw IllegalArgumentException("Missing/invalid height")
+            val unitA = formAdapterA.state.getString(KEY_HEIGHT_A_UT) ?: "METERS"
+            val uA = HeightType.valueOf(unitA)
+
+            heightA = if (uA == HeightType.FEET) feetToMeters(heighttA) else heighttA
+
+            tvErrA.visibility = View.GONE
+            secA.setExpanded(false)
+            secB.setExpanded(true)
+
+        } catch (e: Exception) {
+            tvErrA.visibility = View.VISIBLE
+            tvErrA.text = e.message ?: "Invalid UTM Coordinates"
+
         }
     }
 
@@ -474,20 +779,37 @@ class YeilutActivity : BaseActivity()  {
     private fun applyEffectivenessUI(distanceMeters: Double) {
         val effective = distanceMeters < 20005.0
 
-        val okColor = android.graphics.Color.parseColor("#2E7D32")   // green
-        val badColor = android.graphics.Color.parseColor("#C62828")  // red
+        val okColor = Color.parseColor("#2E7D32")   // green
+        val badColor = Color.parseColor("#C62828")  // red
         val color = if (effective) okColor else badColor
         val km = distanceMeters / 1000.0
 
-        binding.includeResults.tvResultsTitle.text = if (effective) {
+        resultsBinding.tvResultsTitle.visibility = View.VISIBLE
+        resultsBinding.tvResultsTitle.text = if (effective) {
             "✅ EFFECTIVE (${String.format("%.3f", km)} km < 20.005)"
         } else {
             "❌ NOT EFFECTIVE (${String.format("%.3f", km)} km ≥ 20.005)"
         }
-        binding.includeResults.tvResultsTitle.setTextColor(color)
-
+        resultsBinding.tvResultsTitle.setTextColor(color)
 
     }
+
+    fun makeCardFlat(cards: List<MaterialCardView>) {
+        cards.forEach { card -> card.apply {
+            strokeWidth = 0
+            strokeColor = Color.TRANSPARENT
+
+            cardElevation = 0f
+            elevation = 0f
+
+            // removes extra shadow padding
+            useCompatPadding = false
+            preventCornerOverlap = false
+        } }
+
+    }
+
+
 
 }
 

@@ -43,7 +43,7 @@ object LatLonConverter {
         val errors = mutableListOf<String>()
         if (!p.lat.isFiniteReal() || p.lat !in -90.0..90.0) errors += "Latitude must be between -90 and 90"
         if (!p.lon.isFiniteReal() || p.lon !in -180.0..180.0) errors += "Longitude must be between -180 and 180"
-        if (p.alt != null && !p.alt.isFiniteReal()) errors += "Altitude must be a real number"
+        //if (p.alt != null && !p.alt.isFiniteReal()) errors += "Altitude must be a real number"
         return errors
     }
 
@@ -57,10 +57,12 @@ object LatLonConverter {
         return p*/
 
         val lat = inputE.toDouble()
+        require(lat.isFiniteReal() || lat in -90.0..90.0) { "Latitude must be between -90 and 90" }
+
         val lon = inputN.toDouble()
+        require(lon.isFiniteReal() || lon in -180.0..180.0) {"Longitude must be between -180 and 180"}
+
         val p = LatLon(lat, lon)
-        val errs = validate(p)
-        if (!errs.isEmpty()) throw IllegalArgumentException(errs.joinToString("; "))
 
         return p
     }
@@ -92,10 +94,11 @@ object LatLonConverter {
         return Mercator(x, y)
     }
 
-    fun latLonToUtm(p: LatLon, zone: Int = 0, hemisphereNorth: Boolean = true): Utm {
+    fun latLonToUtm(p: LatLon, zoneStr: String = "0", hemisphereNorth: Boolean = true): Utm {
         val crsFactory = CRSFactory()
         val ctFactory = CoordinateTransformFactory()
 
+        val zone = if (zoneStr.toInt() == 0) guessZoneFromLon(p.lon) else zoneStr.toInt()
         if (zone != 0) require(zone in 1..60) { "UTM zone must be 1..60" }
         require(p.lat in -80.0..84.0) { "UTM valid latitude is roughly -80..84" }
         require(p.lon in -180.0..180.0) { "Longitude must be -180..180" }
@@ -123,6 +126,7 @@ object LatLonConverter {
             easting = out.x,
             northing = out.y
         )
+
     }
 
     fun latLonToMgrs(p: LatLon, accuracy: Int = 5): String {

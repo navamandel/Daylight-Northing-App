@@ -1,19 +1,18 @@
 package com.example.landnv4.ui.form
 
-import android.text.Editable
-import android.text.InputFilter
-import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landnv4.ConverterActivity
 import com.example.landnv4.R
+import com.example.landnv4.data.db.infobank.HeightConverters.fromHeightType
+import com.example.landnv4.data.db.infobank.HeightConverters.toHeightTypeN
+import com.example.landnv4.data.db.infobank.HeightConverters.toPrettyString
 import com.example.landnv4.data.db.infobank.HeightType
-import com.example.landnv4.data.inputs.AppInputsStore
 import com.example.landnv4.databinding.RowFormCoordBinding
 import com.example.landnv4.databinding.RowFormDateBinding
 import com.example.landnv4.databinding.RowFormHeightBinding
@@ -22,9 +21,6 @@ import com.example.landnv4.databinding.RowFormSwitchBinding
 import com.example.landnv4.databinding.RowFormTextBinding
 import com.example.landnv4.databinding.RowFormTimeBinding
 import com.example.landnv4.databinding.RowFormUtmBinding
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 
 class FormAdapter(
@@ -50,7 +46,9 @@ class FormAdapter(
         super.onDetachedFromRecyclerView(recyclerView)
     }
 
-    private fun safeNotifyItemChanged(position: Int, payload: Any? = null) {
+    fun safeNotifyItemChanged(position: Int, payload: Any? = null) {
+        //val index = Payload.entries.toTypedArray().indexOfFirst { it.name == _payload }
+        //val payload = if (index != -1) Payload.valueOf(_payload) else _payload
         if (position == RecyclerView.NO_POSITION) return
         val recyclerView = rv ?: run {
             if (payload == null) notifyItemChanged(position) else notifyItemChanged(position, payload)
@@ -69,10 +67,21 @@ class FormAdapter(
 
 
 
-    fun setError(key: String, message: String?) {
-        errors[key] = message
-        safeNotifyItemChanged(items.indexOfFirst { it.key == key }.coerceAtLeast(0))
+    fun setError(err: List<String>) {
+        state.error.keys.zip(err).forEach { (key, value) -> state.error[key] = value }
     }
+
+    fun clearAllErrors() {
+        errors.clear()
+        items.forEachIndexed { index, _ -> safeNotifyItemChanged(index, Payload.ERROR) }
+    }
+
+    fun clearValue(key: String) {
+        state.clearValue(key)
+        errors.remove(key)
+        notifyItemChanged(indexOfKey(key))
+    }
+
 
     override fun getItemCount() = items.size
 
@@ -197,8 +206,8 @@ class FormAdapter(
 
 
         fun bind(item: FormItem.Text) {
-            b.tvLabel.text = item.label
-            b.etValue.hint = item.hint ?: ""
+            //b.tvLabel.text = item.label
+            b.til.hint = item.label
             currentKey = item.key
 
             val existingValue = state.getString(item.key)
@@ -215,23 +224,75 @@ class FormAdapter(
             isBinding = false
 
             // show error
-            b.tvError.text = errors[item.key]
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key]
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
 
         }
 
         fun bindErrorOnly(item: FormItem.Text) {
-            b.tvError.text = errors[item.key].orEmpty()
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key].orEmpty()
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
         }
 
     }
 
 
+
     inner class SpinnerVH(private val b: RowFormSpinnerBinding) : RecyclerView.ViewHolder(b.root) {
 
         fun bind(item: FormItem.Spinner) {
-            b.tvLabel.text = item.label
+
+            b.tvLabel.hint = item.label
+
+            b.spinner.onItemClickListener = null
+            val parentValue = item.dependsOnKey?.let { state.getString(it) }
+
+            val options = item.optionsProvider?.invoke(parentValue) ?: item.staticOptions
+            val optValues = options.map { it.first }
+            val optLabels = options.map { it.second }
+
+            val adapter = ArrayAdapter(
+                b.root.context,
+                android.R.layout.simple_list_item_1,
+                optLabels
+            )
+            b.spinner.setAdapter(adapter)
+
+            // ----- set current selection without triggering anything -----
+            val currentValue = state.getString(item.key)
+
+            val idx = optValues.indexOf(currentValue)
+            val desiredLabel =
+                if (idx >= 0) optLabels[idx]
+                else if (options.isNotEmpty()) {
+                    state.set(item.key, optValues[0])
+                    optLabels[0]
+                } else {
+                    state.set(item.key, null)
+                    ""
+                }
+
+            if (b.spinner.text?.toString() != desiredLabel) {
+                b.spinner.setText(desiredLabel, false)
+            }
+
+            // ----- handle user selection -----
+            b.spinner.setOnItemClickListener { _, _, position, _ ->
+                val newValue = optValues[position]
+                if (state.getString(item.key) != newValue) {   // guard
+                    state.set(item.key, newValue)
+                    item.onItemChanged?.invoke()
+                }
+            }
+
+            // optional: prevent manual typing
+            b.spinner.keyListener = null
+            b.spinner.isEnabled = state.isEnabled(item.key)
+            b.tvLabel.isEnabled = state.isEnabled(item.key)
+        }
+/*
+        fun bind(item: FormItem.Spinner) {
+            //b.tvLabel.text = item.label
 
             val parentValue = item.dependsOnKey?.let { state.getString(it) }
 
@@ -248,7 +309,7 @@ class FormAdapter(
                 it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             }
 
-            b.spinner.adapter = adapter
+            b.spinner.setAdapter(adapter)
 
             val current = state.getString(item.key)
             val idx = optValues.indexOf(current)
@@ -271,11 +332,12 @@ class FormAdapter(
                         id: Long
                     ) {
                         state.set(item.key, optValues[position])
+                        item.onItemChanged?.invoke()
                     }
 
                     override fun onNothingSelected(parent: AdapterView<*>) {}
                 }
-        }
+        }*/
 
         fun bindOptionsOnly(item: FormItem.Spinner) {
             // update spinner adapter/options based on dependsOnKey
@@ -326,10 +388,10 @@ class FormAdapter(
 
         fun bind(item: FormItem.Date) {
             currentKey = item.key
-            b.etDate.hint = item.hint
+            //b.etDate.hint = item.hint
 
-            b.tvError.text = errors[item.key]
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key]
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
 
             val desired = state.getString(item.key)
             if (b.etDate.text?.toString() != desired && desired != null){
@@ -360,8 +422,8 @@ class FormAdapter(
         }
 
         fun bindErrorOnly(item: FormItem.Date) {
-            b.tvError.text = errors[item.key].orEmpty()
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key].orEmpty()
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
         }
 
         fun bindExternalText(item: FormItem.Date) {
@@ -395,10 +457,10 @@ class FormAdapter(
         fun bind(item: FormItem.Time) {
             currentKey = item.key
 
-            b.etTime.hint = item.hint
+            //b.etTime.hint = item.hint
 
-            b.tvError.text = errors[item.key] ?: ""
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key] ?: ""
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
 
             val desired = state.getString(item.key)
             if (b.etTime.text?.toString() != desired && desired != null) {
@@ -428,8 +490,8 @@ class FormAdapter(
         }
 
         fun bindErrorOnly(item: FormItem.Time) {
-            b.tvError.text = errors[item.key].orEmpty()
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key].orEmpty()
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
         }
 
         fun bindExternalText(item: FormItem.Time) {
@@ -494,14 +556,22 @@ class FormAdapter(
             zoneKey = item.zoneKey
             hemiKey = item.hemisphereKey
 
+            val enabled = state.isEnabled(item.key) // or whatever your logic is
+            b.etEasting.isEnabled = enabled
+            b.etNorthing.isEnabled = enabled
+            b.etZone.isEnabled = enabled
+            b.rbNorth.isEnabled = enabled
+            b.rbSouth.isEnabled = enabled
+
             b.tvLabel.text = item.label
 
-            b.tvError.text = errors[item.key].orEmpty()
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
 
-            b.etEasting.hint = "UTM Easting"
-            b.etNorthing.hint = "UTM Northing"
-            b.etZone.hint = "UTM Zone"
+            //b.tvError.text = errors[item.key].orEmpty()
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+
+            //b.etEasting.hint = "UTM Easting"
+            //b.etNorthing.hint = "UTM Northing"
+            //b.etZone.hint = "UTM Zone"
 
             val currentE = state.getString(item.eastingKey) ?: item.currentUtm?.easting?.toString() ?: ""
             val currentN = state.getString(item.northingKey) ?: item.currentUtm?.northing?.toString() ?: ""
@@ -510,20 +580,22 @@ class FormAdapter(
             if (state.getBoolean(item.hemisphereKey) == null) state.set(item.hemisphereKey, true)
 
             // prevent switch listener loops if you have a listener elsewhere
-            b.swHemi.setOnCheckedChangeListener(null)
+            b.rgHemisphere.setOnCheckedChangeListener(null)
 
             // Update text safely WITHOUT forcing cursor selection every bind
             isBinding = true
             b.etEasting.setTextSafely(currentE)
             b.etNorthing.setTextSafely(currentN)
             b.etZone.setTextSafely(currentZ)
-            b.swHemi.isChecked = currentH
+            if (currentH) b.rgHemisphere.check(R.id.rbNorth)
+            else b.rgHemisphere.check(R.id.rbSouth)
             isBinding = false
 
-            b.swHemi.setOnCheckedChangeListener { _, checked ->
+            b.rgHemisphere.setOnCheckedChangeListener { _, checkedId ->
+                val hemi = checkedId == R.id.rbNorth
                 if (isBinding) return@setOnCheckedChangeListener
                 val hk = hemiKey ?: return@setOnCheckedChangeListener
-                if (state.getBoolean(hk) != checked) state.set(hk, checked)
+                if (state.getBoolean(hk) != hemi) state.set(hk, hemi)
             }
 
             // Set UI from current
@@ -555,15 +627,17 @@ class FormAdapter(
         }
 
         fun bindEnabledOnly(item: FormItem.UtmItem) {
-            val enabled = state.getBoolean(item.hemisphereKey) ?: true // or whatever your logic is
+            val enabled = state.isEnabled(item.key) // or whatever your logic is
             b.etEasting.isEnabled = enabled
             b.etNorthing.isEnabled = enabled
             b.etZone.isEnabled = enabled
+            b.rbNorth.isEnabled = enabled
+            b.rbSouth.isEnabled = enabled
         }
 
         fun bindErrorOnly(item: FormItem.UtmItem) {
-            b.tvError.text = errors[item.key].orEmpty()
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key].orEmpty()
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
         }
 
     }
@@ -635,12 +709,12 @@ class FormAdapter(
             zoneKey = item.zoneKey
             hemiKey = item.hemisphereKey
 
-            b.nyCoord.visibility = if (item.showNYCoord) View.VISIBLE else View.GONE
-            b.zCoord.visibility = if (item.showZCoord) View.VISIBLE else View.GONE
+            b.tilNyCoord.visibility = if (item.showNYCoord) View.VISIBLE else View.GONE
+            b.tilZCoord.visibility = if (item.showZCoord) View.VISIBLE else View.GONE
             b.zoneHemi.visibility = if (item.showZoneHemi) View.VISIBLE else View.GONE
 
-            b.tvError.text = state.getError(item.key).orEmpty()
-            b.tvError.visibility = if (state.getError(item.key).isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = state.getError(item.key).orEmpty()
+            //b.tvError.visibility = if (state.getError(item.key).isNullOrBlank()) View.GONE else View.VISIBLE
 
             /*b.etExCoord.hint = "UTM Easting"
             b.etNyCoord.hint = "UTM Northing"
@@ -654,7 +728,7 @@ class FormAdapter(
             val currentZone = state.getString(item.zoneKey).orEmpty()
             val currentH = state.getBoolean(item.hemisphereKey) ?: true
 
-            b.swHemi.setOnCheckedChangeListener(null)
+            b.rgHemisphere.setOnCheckedChangeListener(null)
 
             // Update text safely WITHOUT forcing cursor selection every bind
             isBinding = true
@@ -662,13 +736,15 @@ class FormAdapter(
             b.etNyCoord.setTextSafely(currentN)
             b.etZCoord.setTextSafely(currentZ)
             b.etZone.setTextSafely(currentZone)
-            b.swHemi.isChecked = currentH
+            if (currentH) b.rgHemisphere.check(R.id.rbNorth)
+            else b.rgHemisphere.check(R.id.rbSouth)
             isBinding = false
 
-            b.swHemi.setOnCheckedChangeListener { _, checked ->
+            b.rgHemisphere.setOnCheckedChangeListener { _, checkedId ->
+                val hemi = checkedId == R.id.rbNorth
                 if (isBinding) return@setOnCheckedChangeListener
                 val hk = hemiKey ?: return@setOnCheckedChangeListener
-                if (state.getBoolean(hk) != checked) state.set(hk, checked)
+                if (state.getBoolean(hk) != hemi) state.set(hk, hemi)
             }
 
             // Set UI from current
@@ -709,20 +785,17 @@ class FormAdapter(
 
         fun bindVisibilityOnly(item: FormItem.Coords) {
             // show/hide views only; no setText
-            b.nyCoord.visibility = if (item.showNYCoord) View.VISIBLE else View.GONE
-            b.zCoord.visibility = if (item.showZCoord) View.VISIBLE else View.GONE
+            b.tilNyCoord.visibility = if (item.showNYCoord) View.VISIBLE else View.GONE
+            b.tilZCoord.visibility = if (item.showZCoord) View.VISIBLE else View.GONE
             b.zoneHemi.visibility = if (item.showZoneHemi) View.VISIBLE else View.GONE
 
-            b.etExCoord.hint = state.getString("crdsHint1")
-            b.tvInputExLabel.visibility = if (item.showNYCoord) View.VISIBLE else View.GONE
-            b.tvInputExLabel.text = state.getString("crdsLabel1")
-            b.etNyCoord.hint = state.getString("crdsHint2")
-            b.tvNyLabel.text = state.getString("crdsLabel2")
+            b.tilExCoord.hint = state.getString("crdsHint1")
+            b.tilNyCoord.hint = state.getString("crdsHint2")
         }
 
         fun bindErrorOnly(item: FormItem.Coords) {
-            b.tvError.text = errors[item.key].orEmpty()
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key].orEmpty()
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
         }
 
     }
@@ -750,23 +823,46 @@ class FormAdapter(
         }
 
         fun bind(item: FormItem.Height) {
-            b.tvLabel.text = item.label
+            //b.tvLabel.text = item.label
+            currentKey = item.valueKey
 
             // Units spinner
+            /*
             val adapter = ArrayAdapter(b.root.context, android.R.layout.simple_spinner_item, item.units)
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            b.spUnit.adapter = adapter
+            b.spUnit.setAdapter(adapter)*/
+            val adapter = ArrayAdapter(
+                b.root.context,
+                com.google.android.material.R.layout.m3_auto_complete_simple_item,
+                item.units
+            )
+            //adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            b.spUnit.setAdapter(adapter)
 
             // restore existing values if any
-            val existingValue = state.getString(item.valueKey)?.trim()
-            if (existingValue != null && b.etHeight.text?.toString()?.trim() != existingValue) {
+            val existingValue = state.getString(item.valueKey).orEmpty()
+            if (b.etHeight.text?.toString()?.trim() != existingValue) {
                 isBinding = true
                 b.etHeight.setTextSafely(existingValue)
                 isBinding = false
             }
 
-            val existingUnit = state.getString(item.unitKey)?.trim()
+            val existingUnit = toHeightTypeN(state.getString(item.unitKey))
             if (existingUnit != null) {
+                b.spUnit.setText(existingUnit.toPrettyString(), false)
+            } else {
+                b.spUnit.setText(item.units.first(), false)
+            }
+
+            // ----- handle user selection -----
+            b.spUnit.setOnItemClickListener { _, _, position, _ ->
+                state.set(item.key, HeightType.entries[position].fromHeightType())
+            }
+
+            // optional: prevent manual typing
+            b.spUnit.keyListener = null
+
+            /*if (existingUnit != null) {
                 val idx = item.units.indexOf(existingUnit)
                 if (idx >= 0) b.spUnit.setSelection(idx, false)
             } else {
@@ -774,27 +870,23 @@ class FormAdapter(
                 state.set(item.unitKey, item.units.first())
             }
 
-            // listeners (careful: don’t add multiple watchers)
-            /*b.etHeight.doAfterTextChanged {
-                state.set(item.valueKey, it?.toString()?.trim())
-            }*/
 
             b.spUnit.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                     state.set(item.unitKey, item.units[position])
                 }
                 override fun onNothingSelected(parent: AdapterView<*>) {}
-            }
+            }*/
 
             // show error
-            b.tvError.text = errors[item.key]
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key]
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
 
         }
 
         fun bindErrorOnly(item: FormItem.Height) {
-            b.tvError.text = errors[item.key].orEmpty()
-            b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
+            //b.tvError.text = errors[item.key].orEmpty()
+            //b.tvError.visibility = if (errors[item.key].isNullOrBlank()) View.GONE else View.VISIBLE
         }
     }
 
@@ -830,7 +922,7 @@ class FormAdapter(
                 key == "unit") {
 
                 val indexx = items.indexOfFirst { it is FormItem.Coords && it.key == "value" }
-                if (index != -1) {
+                if (indexx != -1) {
                     val specc = items[indexx] as FormItem.Coords
 
                     when(state.getString(key)) {
@@ -859,28 +951,28 @@ class FormAdapter(
                     }
 
                     when(state.getString(key)) {
-                        ConverterActivity.GeoInputType.LATLON.name,
+                        ConverterActivity.GeoInputType.LATLON.name -> {
+                            state.set("crdsHint1", specc.hintsLabels?.getOrDefault("hint_lat", ""))
+                            state.set("crdsHint2", specc.hintsLabels?.getOrDefault("hint_lon", ""))
+                        }
+
                         ConverterActivity.GeoInputType.UTM.name,
                         ConverterActivity.GeoInputType.ITM.name -> {
                             state.set("crdsHint1", specc.hintsLabels?.getOrDefault("hint_easting", ""))
-                            state.set("crdsLabel1", specc.hintsLabels?.getOrDefault("label_easting", ""))
-
                             state.set("crdsHint2", specc.hintsLabels?.getOrDefault("hint_northing", ""))
-                            state.set("crdsLabel2", specc.hintsLabels?.getOrDefault("label_northing", ""))
                         }
 
                         ConverterActivity.GeoInputType.ECEF.name,
                         ConverterActivity.GeoInputType.WEB_MERCATOR.name -> {
                             state.set("crdsHint1", specc.hintsLabels?.getOrDefault("hint_x_coord", ""))
-                            state.set("crdsLabel1", specc.hintsLabels?.getOrDefault("label_x_coord", ""))
-
                             state.set("crdsHint2", specc.hintsLabels?.getOrDefault("hint_y_coord", ""))
-                            state.set("crdsLabel2", specc.hintsLabels?.getOrDefault("label_y_coord", ""))
                         }
 
                         else -> {
-                            state.set("crdsHint1", "Enter ${state.getString(spec.key) ?: "Value"}")
-                            state.set("crdsLabel1", "")
+                            val dispayStr = "Enter ${state.getString(key).orEmpty().toPrettyString()}"
+                            state.set("crdsHint1", dispayStr)
+                            Log.d("Form", "category=${state.getString("category")} unit='${state.getString("unit")}'")
+
                         }
 
                     }
@@ -911,6 +1003,14 @@ class FormAdapter(
     }
 
     fun indexOfKey(key: String): Int = items.indexOfFirst { it.key == key }
+
+    fun String.toPrettyString(): String {
+        return this
+            .split("_", " ").joinToString(" ") { part ->
+                part.lowercase().replaceFirstChar { it.uppercase() }
+            }
+    }
+
 
 
 }

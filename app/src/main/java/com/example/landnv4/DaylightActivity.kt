@@ -11,17 +11,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import com.example.landnv4.data.repo.DaylightRepository
+import com.example.landnv4.databinding.ActivityConverterBinding
+import com.example.landnv4.databinding.ActivityDaylightBinding
 import com.example.landnv4.ui.inputs.RequiredInputsDialog
 import kotlinx.coroutines.launch
 
 class DaylightActivity : BaseActivity() {
 
+    override fun getLayoutResId() = R.layout.activity_daylight
     private lateinit var repo: DaylightRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_daylight)
-
+        //setContentView(R.layout.activity_daylight)
+        val root = contentContainer.getChildAt(0)
+        ActivityDaylightBinding.bind(root)
         setupToolbar("Daylight")
 
         repo = DaylightRepository(this)

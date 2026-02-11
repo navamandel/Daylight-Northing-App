@@ -12,17 +12,15 @@ data class Ecef(val x: Double, val y: Double, val z: Double)
 
 object EcefConverter {
 
-    fun validate(p: Ecef): List<String> {
-        val errors = mutableListOf<String>()
-        if (!p.x.isFiniteReal()) errors += "ECEF X must be a real number"
-        if (!p.y.isFiniteReal()) errors += "ECEF Y must be a real number"
-        if (!p.z.isFiniteReal()) errors += "ECEF Z must be a real number"
+    fun validate(p: Ecef) {
+        if (!p.x.isFiniteReal()) throw IllegalArgumentException("ECEF X must be a real number")
+        if (!p.y.isFiniteReal()) throw IllegalArgumentException("ECEF Y must be a real number")
+        if (!p.z.isFiniteReal()) throw IllegalArgumentException("ECEF Z must be a real number")
 
         // Optional: loose magnitude sanity check (Earth radius ~6.37e6 m)
         val r2 = p.x*p.x + p.y*p.y + p.z*p.z
-        if (!r2.isFiniteReal() || r2 <= 0.0) errors += "ECEF vector must be non-zero"
+        if (!r2.isFiniteReal() || r2 <= 0.0) throw IllegalArgumentException("ECEF vector must be non-zero")
 
-        return errors
     }
 
     fun parse(inputX: String, inputY: String, inputZ: String): Ecef {
@@ -35,10 +33,12 @@ object EcefConverter {
         return p*/
 
         val p = Ecef(inputX.toDouble(), inputY.toDouble(), inputZ.toDouble())
-        val errs = validate(p)
-        if (!errs.isEmpty()) throw IllegalArgumentException(errs.joinToString("; "))
-
-        return p
+        try {
+            validate(p)
+            return p
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
     fun format(p: Ecef): String =

@@ -2,6 +2,7 @@ package com.example.landnv4.ui.form
 
 import com.example.landnv4.data.db.infobank.HeightType
 import com.example.landnv4.domain.geo.Utm
+import kotlin.collections.toMutableMap
 import kotlin.math.round
 
 /**
@@ -32,20 +33,27 @@ class FormState (
 
     fun isEnabled(key: String): Boolean = enabledMap[key] ?: true
 
-    private val _errors = mutableMapOf<String, String?>()
-    val errors: Map<String, Any?> get() = _errors
-    fun setStateError(key: String, err: String?) {
-        _errors[key] = err
+    private val errorFields = listOf("Title", "Message", "Key")
+    var error = errorFields.associateWith { "" }.toMutableMap()
+    fun setStateError(err: List<String>) {
+        error = errorFields.zip(err).toMap() as MutableMap<String, String>
     }
-    fun getError(key: String): String? = _errors[key]
+    //fun getError(): MutableMap<String, String> = error
 
     fun getString(key: String): String? = _values[key] as? String
     fun getBoolean(key: String): Boolean? = _values[key] as? Boolean
 
     fun clearValue(key: String) { _values[key] = "" }
-    fun clearAllValues() {
-        _values.clear()
-        listeners.clear()
+    fun clearAllValues(vals: List<String>? = null) {
+        if (vals == null) {
+            _values.clear()
+        } else {
+            vals.forEach { _values[it] = "" }
+        }
+
+
+
+        //listeners.clear()
     }
 
     fun addListener(l: (String) -> Unit) { listeners.add(l) }

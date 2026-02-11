@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="formBg" format="color"/>
+    <attr name="resultsBg" format="color"/>
+
+    <attr name="sectionHeaderStyle" format="reference"/>
+    <attr name="sectionContentStyle" format="reference"/>
+
+    <attr name="dropdownMenuStyle" format="reference"/>
+
+    <attr name="resultsCard" format="reference" />
+</resources>

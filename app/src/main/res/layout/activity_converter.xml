@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <include layout="@layout/include_toolbar"/>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -18,25 +17,75 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <include
-                android:id="@+id/include_form"
-                layout="@layout/include_form" />
+            <LinearLayout
+                android:id="@+id/form_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp"
+                android:theme="@style/ThemeOverlay.LandN.Form.Minimal">
 
+                <include
+                    android:id="@+id/include_form"
+                    layout="@layout/include_form"/>
 
-            <Button
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/holo_red_light"
+                android:textSize="12sp"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"/>
+
+            <!--
+            <com.google.android.material.card.MaterialCardView
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                android:layout_marginBottom="12dp"
+                android:theme="@style/ThemeOverlay.LandN.Form.Minimal"
+                >
+
+                <include
+                    android:id="@+id/include_form"
+                    layout="@layout/include_form" />
+            </com.google.android.material.card.MaterialCardView>
+            -->
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_convert"
                 android:text="Convert"
+                android:textSize="20sp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                app:cornerRadius="10dp"/>
 
-            <!-- Results Card -->
+            <!-- Results Card
             <include
+                style="@style/Widget.LandN.ResultsCard.B"
                 android:id="@+id/include_results"
                 layout="@layout/include_results"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"/>
+            -->
+            <LinearLayout
+                android:id="@+id/section_results"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:visibility="gone"
+                android:theme="@style/ThemeOverlay.LandN.Section.B">
 
+                <include layout="@layout/expandable_section"/>
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

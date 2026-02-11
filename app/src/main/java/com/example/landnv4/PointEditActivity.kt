@@ -47,11 +47,13 @@ class PointEditActivity : BaseActivity() {
     private var id: Long = 0L
 
     private lateinit var formAdapter: FormAdapter
+    override fun getLayoutResId() = R.layout.activity_point_edit
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityPointEditBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        val root = contentContainer.getChildAt(0)
+        binding = ActivityPointEditBinding.bind(root)
+        //setContentView(binding.root)
 
         type = BankType.valueOf(intent.getStringExtra(EXTRA_BANK_TYPE) ?: BankType.ANCHORING.name)
         id = intent.getLongExtra(EXTRA_ID, 0L)
@@ -69,7 +71,7 @@ class PointEditActivity : BaseActivity() {
 
         formAdapter = FormAdapter(items)
         binding.includeForm.formTitle.text = "Add New ${type.title()}"
-        binding.includeForm.formSubtitle.visibility = View.GONE
+        //binding.includeForm.formSubtitle.visibility = View.GONE
         binding.includeForm.rvInput.apply {
             layoutManager = LinearLayoutManager(this@PointEditActivity)
             adapter = formAdapter
@@ -98,36 +100,41 @@ class PointEditActivity : BaseActivity() {
     }
 
     private fun prefillIfEditing() {
+        val easting = intent.getDoubleExtra(EXTRA_UTM_E, 0.0)
+        if (easting < 1) return
 
-        /*binding.etName.setText(intent.getStringExtra(EXTRA_NAME) ?: "")
-        binding.etUtm.setText(intent.getIntExtra(EXTRA_UTM, 0).toString())
-        binding.etLocation.setText(intent.getStringExtra(EXTRA_LOCATION) ?: "")
-        binding.etHeight.setText(intent.getIntExtra(EXTRA_HEIGHT, 0).toString())
+        formAdapter.state.set("utm_easting", easting.toString())
+        formAdapter.state.set("utm_northing", intent.getDoubleExtra(EXTRA_UTM_N, 0.0).toString())
+        formAdapter.state.set("utm_zone", intent.getIntExtra(EXTRA_UTM_Z, 0).toString())
+        formAdapter.state.set("utm_hemisphere", intent.getBooleanExtra(EXTRA_UTM_H, true))
 
-        val ht = intent.getStringExtra(EXTRA_HEIGHT_TYPE) ?: HeightType.METERS.name
-        binding.spHeightType.setSelection(if (ht == HeightType.FEET.name) 1 else 0)*/
+        formAdapter.state.set("NAME", intent.getStringExtra(EXTRA_NAME) ?: "")
+        formAdapter.state.set("LOCATION", intent.getStringExtra(EXTRA_LOCATION) ?: "")
+
+        formAdapter.state.set("height_value", intent.getDoubleExtra(EXTRA_HEIGHT, 0.0).toString())
+        formAdapter.state.set("height_unit", intent.getStringExtra(EXTRA_HEIGHT_TYPE) ?: "")
+
+        formAdapter.notifyDataSetChanged()
     }
 
     private fun save() {
-        val name = formAdapter.state.getString("NAME").toString()
-            //binding.etName.text?.toString()?.trim().orEmpty()
-        val location = formAdapter.state.getString("LOCATION").toString()
-            //binding.etLocation.text?.toString()?.trim().orEmpty()
+        val name = formAdapter.state.getString("NAME").orEmpty()
+        val location = formAdapter.state.getString("LOCATION").orEmpty()
 
-        val utmE = formAdapter.state.getString("utm_easting").toString()
-        val utmN = formAdapter.state.getString("utm_northing").toString()
-        val utmZone = formAdapter.state.getString("utm_zone").toString().toInt()
+        val utmE = formAdapter.state.getString("utm_easting").orEmpty()
+        val utmN = formAdapter.state.getString("utm_northing").orEmpty()
+        val utmZone = formAdapter.state.getString("utm_zone").orEmpty()
         val utmHemi = formAdapter.state.getBoolean("utm_hemisphere") ?: true
-            //binding.etUtm.text?.toString()?.trim().orEmpty()
-        val heightStr = formAdapter.state.getString("height_value").toString().toDoubleOrNull()
-        val height = heightStr ?: 0.0
-        val heightUnit = toHeightType(formAdapter.state.getString("height_unit") ?: "METERS")
-            //binding.etHeight.text?.toString()?.trim().orEmpty()
 
-        /*if (name!!.isBlank() || location!!.isBlank() || utmStr.isBlank() || heightStr.isBlank()) {
-            Toast.makeText(this, "Please fill all fields.", Toast.LENGTH_SHORT).show()
-            return
-        }*/
+        val heightStr = formAdapter.state.getString("height_value").orEmpty()
+        val heightUnit = toHeightType(formAdapter.state.getString("height_unit") ?: "METERS")
+        val height = heightStr.toDoubleOrNull() ?: 0.0
+
+
+        if (name.isBlank() || location.isBlank() || utmE.isBlank() || utmN.isBlank()
+            || utmZone.isBlank() || heightStr.isBlank()) {
+            throw IllegalArgumentException("Please fill all fields.")
+        }
 
         try {
             val utm = parseUtm(utmE, utmN, utmZone, utmHemi)
@@ -143,9 +150,11 @@ class PointEditActivity : BaseActivity() {
 
             if (id == 0L) vm.insert(type, item) else vm.update(type, item)
             formAdapter.state.clearAllValues()
+            binding.includeForm.tvError.visibility = View.GONE
             finish()
         } catch (e: Exception){
-            formAdapter.setError("UTM", e.message)
+            binding.includeForm.tvError.visibility = View.VISIBLE
+            binding.includeForm.tvError.text = e.message
         }
 
 

@@ -9,7 +9,8 @@
         android:layout_marginVertical="6dp"
         app:cardCornerRadius="14dp"
         app:cardElevation="2dp"
-        android:foreground="?attr/selectableItemBackground">
+        android:foreground="?attr/selectableItemBackground"
+        app:cardBackgroundColor="?attr/colorSurfaceVariant">
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -30,10 +31,9 @@
                 android:layout_marginEnd="8dp"/>
 
             <TextView
-                android:id="@+id/tvUtmLocation"
+                android:id="@+id/tvUtm"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="UTM: 123456789 | Location: Jerusalem"
                 android:textSize="14sp"
                 android:layout_marginTop="6dp"
                 app:layout_constraintTop_toBottomOf="@id/tvName"
@@ -42,13 +42,24 @@
                 android:layout_marginEnd="8dp"/>
 
             <TextView
+                android:id="@+id/tvLocation"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:layout_marginTop="6dp"
+                app:layout_constraintTop_toBottomOf="@id/tvUtm"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btnDelete"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
                 android:id="@+id/tvHeight"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Height: 826 METERS"
                 android:textSize="14sp"
                 android:layout_marginTop="4dp"
-                app:layout_constraintTop_toBottomOf="@id/tvUtmLocation"
+                app:layout_constraintTop_toBottomOf="@id/tvLocation"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/btnDelete"
                 android:layout_marginEnd="8dp"

@@ -3,7 +3,7 @@ package com.example.landnv4.domain.geo
 object UtmParser {
 
 
-    fun parseUtm(rawE: String, rawN: String, zone: Int = 36, hemisphereNorth: Boolean = true): Utm {
+    fun parseUtm(rawE: String, rawN: String, rawZ: String, hemisphereNorth: Boolean = true): Utm {
 
         val easting = validateEasting(rawE)
         if(easting !in 100_000.0..900_000.0) throw IllegalArgumentException(
@@ -15,6 +15,7 @@ object UtmParser {
             "UTM Northing must be all digits in the range 0..10000000 and in the format NNNNNNN(.NN)"
         )
 
+        val zone = rawZ.toIntOrNull() ?: 0
         if(zone !in 0..60) throw IllegalArgumentException("UTM zone must be in the range 1..60")
 
         return Utm(easting, northing, zone, hemisphereNorth)
@@ -48,7 +49,7 @@ object UtmParser {
 
     fun String.toUtm(): Utm {
         val parts = this.split(",")
-        return parseUtm(parts[0], parts[1], parts[2].toInt(), parts[3].toBoolean())
+        return parseUtm(parts[0], parts[1], parts[2], parts[3].toBoolean())
     }
 
 

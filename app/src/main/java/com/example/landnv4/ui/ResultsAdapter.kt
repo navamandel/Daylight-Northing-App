@@ -7,7 +7,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.landnv4.databinding.RowResultBinding
 
-class ResultsAdapter : ListAdapter<ResultItem, ResultsAdapter.VH>(Diff) {
+class ResultsAdapter(
+    private val onClick: (() -> Unit)? = null
+) : ListAdapter<ResultItem, ResultsAdapter.VH>(Diff) {
 
     object Diff : DiffUtil.ItemCallback<ResultItem>() {
         override fun areItemsTheSame(oldItem: ResultItem, newItem: ResultItem) =
@@ -30,5 +32,12 @@ class ResultsAdapter : ListAdapter<ResultItem, ResultsAdapter.VH>(Diff) {
         val item = getItem(position)
         holder.binding.tvLabel.text = item.label
         holder.binding.tvValue.text = item.value
+
+        holder.binding.root.setOnClickListener { onClick?.invoke() }
+
     }
+
+    fun clearResults() = submitList(emptyList())
+
+
 }

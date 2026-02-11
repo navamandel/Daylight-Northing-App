@@ -40,12 +40,9 @@ object ItmConverter {
         crsFactory.createFromParameters("WGS84", "+proj=longlat +datum=WGS84 +no_defs")
     }
 
-    fun validate(p: Itm): List<String> {
-        val errors = mutableListOf<String>()
-        // Loose ranges (ITM varies; keep it permissive but sane)
-        if (!p.easting.isFiniteReal()) errors += "ITM easting must be a real number"
-        if (!p.northing.isFiniteReal()) errors += "ITM northing must be a real number"
-        return errors
+    fun validate(p: Itm) {
+        if (!p.easting.isFiniteReal()) throw IllegalArgumentException("ITM easting must be a real number")
+        if (!p.northing.isFiniteReal()) throw IllegalArgumentException("ITM northing must be a real number")
     }
 
     fun parse(inputE: String, inputN: String): Itm {
@@ -59,10 +56,13 @@ object ItmConverter {
         val e = inputE.toDouble()
         val n = inputN.toDouble()
         val p = Itm(e, n)
-        val errs = validate(p)
-        if (!errs.isEmpty()) throw IllegalArgumentException(errs.joinToString("; "))
-        Log.d("Itm/Errors", "${p.easting},${p.northing}; $errs")
-        return p
+
+        try {
+            validate(p)
+            return p
+        } catch (ex: Exception) {
+            throw ex
+        }
     }
 
     fun format(p: Itm): String = "E=%.3f N=%.3f".format(p.easting, p.northing)

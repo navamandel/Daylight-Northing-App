@@ -15,6 +15,9 @@
     <color name="color_primary_variant">#1565C0</color>
     <color name="color_on_primary">#FFFFFF</color>
 
+    <color name="color_primary_container">#D6E4FF</color>
+    <color name="color_on_primary_container">#0A2A5E</color>
+
     <color name="color_secondary">#26A69A</color>
     <color name="color_secondary_variant">#00897B</color>
     <color name="color_on_secondary">#FFFFFF</color>
@@ -23,4 +26,29 @@
     <color name="app_background">#FFFFFF</color>
     <color name="app_surface">#FFFFFF</color>
     <color name="app_on_surface">#111111</color>
+
+    <color name="app_bg">#F6F8FB</color>
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#475569</color>
+    <color name="brand">#1976D2</color>
+    <color name="brand_on">#FFFFFF</color>
+    <color name="divider">#263241</color>
+    <color name="error">#D32F2F</color>
+
+    <!-- Section card background -->
+    <color name="card_bg">#F2F5F9</color>   <!-- very light cool gray -->
+    <color name="card_header_bg">#E6EEF8</color>
+    <!-- Input filled background (slightly brighter than section) -->
+    <color name="card_input_bg">#F7F9FC</color>
+    <!-- Subtle border -->
+    <color name="card_stroke">#D6DEEA</color> <!-- ~12% black -->
+    <color name="card_input_stroke">#D6DEEA</color>
+    <color name="card_input_focused">#2F6FD8</color>
+
+    <color name="card_b_bg">#F1F7F6</color>          <!-- cool minty-gray -->
+    <color name="card_b_header_bg">#DFF1EE</color>   <!-- soft teal header -->
+    <color name="card_b_stroke">#CFE3E0</color>      <!-- subtle teal-gray stroke -->
+
+    <color name="brand_b">#2C3A4B</color>
+
 </resources>

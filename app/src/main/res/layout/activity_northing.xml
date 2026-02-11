@@ -6,7 +6,6 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <include layout="@layout/include_toolbar"/>
 
     <EditText
         android:id="@+id/etUtm"

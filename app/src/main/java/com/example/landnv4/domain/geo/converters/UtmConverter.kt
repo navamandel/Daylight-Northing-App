@@ -29,28 +29,32 @@ object UtmConverter {
      * Returns Pair(latDeg, lonDeg)
      */
     fun utmToLatLon(utm: Utm): LatLon {
-        val crsFactory = CRSFactory()
-        val ctFactory = CoordinateTransformFactory()
+        try {
+            val crsFactory = CRSFactory()
+            val ctFactory = CoordinateTransformFactory()
 
-        val zone = utm.zone
-        require(zone in 1..60) { "UTM zone must be 1..60" }
+            val zone = utm.zone
+            require(zone in 1..60) { "UTM zone must be 1..60" }
 
-        val utmParams = buildString {
-            append("+proj=utm +zone=$zone ")
-            append(if (utm.hemisphereNorth) "" else "+south ")
-            append("+datum=WGS84 +units=m +no_defs")
+            val utmParams = buildString {
+                append("+proj=utm +zone=$zone ")
+                append(if (utm.hemisphereNorth) "" else "+south ")
+                append("+datum=WGS84 +units=m +no_defs")
+            }
+
+            val src = crsFactory.createFromParameters("UTM", utmParams)
+            val dst = crsFactory.createFromName("EPSG:4326") // lon/lat
+
+            val transform = ctFactory.createTransform(src, dst)
+
+            val out = ProjCoordinate()
+            transform.transform(ProjCoordinate(utm.easting, utm.northing), out)
+
+            // EPSG:4326: x=lon, y=lat
+            return LatLon(out.x, out.y)
+        } catch (e: Exception) {
+            throw e
         }
-
-        val src = crsFactory.createFromParameters("UTM", utmParams)
-        val dst = crsFactory.createFromName("EPSG:4326") // lon/lat
-
-        val transform = ctFactory.createTransform(src, dst)
-
-        val out = ProjCoordinate()
-        transform.transform(ProjCoordinate(utm.easting, utm.northing), out)
-
-        // EPSG:4326: x=lon, y=lat
-        return LatLon(out.x, out.y)
     }
 
     /**
@@ -83,8 +87,8 @@ object UtmConverter {
         return Utm(
             zone = zone,
             hemisphereNorth = hemisphereNorth,
-            easting = out.x,
-            northing = out.y
+            easting = out.y,
+            northing = out.x
         )
     }
 

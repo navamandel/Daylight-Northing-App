@@ -13,6 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import com.example.landnv4.data.db.AppDatabase
 import com.example.landnv4.data.db.stars.StarEntity
 import com.example.landnv4.data.repo.StarRepository
+import com.example.landnv4.databinding.ActivityConverterBinding
+import com.example.landnv4.databinding.ActivityNorthingBinding
 import com.example.landnv4.ui.inputs.RequiredInputsDialog
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
@@ -36,6 +38,7 @@ class NorthingActivity : BaseActivity() {
     private lateinit var chart: LineChart
     private lateinit var tvStatus: TextView
     private lateinit var repo: StarRepository
+    override fun getLayoutResId() = R.layout.activity_northing
 
     @RequiresApi(Build.VERSION_CODES.O)
     private val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
@@ -43,8 +46,9 @@ class NorthingActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_northing)
-
+        //setContentView(R.layout.activity_northing)
+        val root = contentContainer.getChildAt(0)
+        ActivityNorthingBinding.bind(root)
         setupToolbar("Northing")
 
         repo = StarRepository(this)

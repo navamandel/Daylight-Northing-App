@@ -43,11 +43,15 @@ object MgrsConverter {
     }
 
     fun mgrsToLatLon(mgrsString: String): LatLon {
-        val mgrs = MGRS.parse(mgrsString.trim()) // :contentReference[oaicite:3]{index=3}
-        val point = mgrs.toPoint()
-        val ll = LatLon(point.getLatitude(), point.getLongitude())
+        try {
+            val mgrs = MGRS.parse(mgrsString.trim()) // :contentReference[oaicite:3]{index=3}
+            val point = mgrs.toPoint()
+            val ll = LatLon(point.getLatitude(), point.getLongitude())
 
-        return ll // :contentReference[oaicite:4]{index=4}
+            return ll // :contentReference[oaicite:4]{index=4}
+        } catch (e: Exception) {
+            throw e
+        }
     }
 
 }

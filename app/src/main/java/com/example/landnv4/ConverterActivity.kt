@@ -1,12 +1,18 @@
 package com.example.landnv4
 
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.landnv4.databinding.ActivityConverterBinding
+import com.example.landnv4.databinding.ActivityHomeBinding
 import com.example.landnv4.databinding.ActivityPointsListBinding
+import com.example.landnv4.databinding.IncludeFormBinding
+import com.example.landnv4.databinding.IncludeResultsBinding
 import com.example.landnv4.domain.geo.*
 import com.example.landnv4.domain.convert.*
 import com.example.landnv4.domain.geo.GeoCore
@@ -24,12 +30,14 @@ import com.example.landnv4.domain.geo.converters.MercatorConverter
 import com.example.landnv4.domain.geo.converters.EcefConverter
 import com.example.landnv4.domain.geo.converters.ItmConverter
 import com.example.landnv4.domain.geo.converters.DmsConverter
+import com.example.landnv4.ui.ExpandableSection
 import com.example.landnv4.ui.ResultItem
 import com.example.landnv4.ui.ResultsAdapter
 import com.example.landnv4.ui.form.FormAdapter
 import com.example.landnv4.ui.form.FormItem
 import com.example.landnv4.ui.form.FormState
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.card.MaterialCardView
 
 
 class ConverterActivity : BaseActivity() {
@@ -40,34 +48,53 @@ class ConverterActivity : BaseActivity() {
     enum class AngleInputType { DEGREES, RADIANS, NATO_MILS, ARTILLERY_MILS, SWEDISH_MILS, GRADIANS, TURNS }
     enum class DistanceInputType { METERS, KILOMETERS, FEET, MILES, NAUTICAL_MILES }
     private lateinit var binding: ActivityConverterBinding
+    private lateinit var resultsBinding: IncludeResultsBinding
+    private lateinit var secR: ExpandableSection
     private lateinit var resultsAdapter: ResultsAdapter
     private lateinit var formAdapter: FormAdapter
     private val KEY_CATEGORY = "category"
     private val KEY_UNIT = "unit"
     private val KEY_VALUE = "value"
+    override fun getLayoutResId() = R.layout.activity_converter
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityConverterBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
+        val root = contentContainer.getChildAt(0)
+        binding = ActivityConverterBinding.bind(root)
         setupToolbar("Converter")
+
+        val themedResInflater = LayoutInflater.from(
+            ContextThemeWrapper(this, R.style.ThemeOverlay_LandN_Results_A)
+        )
+        resultsBinding = IncludeResultsBinding.inflate(
+            themedResInflater,
+            binding.sectionResults.findViewById<FrameLayout>(R.id.content),
+            true
+        )
+
+        secR = ExpandableSection(
+            root = binding.sectionResults.findViewById<MaterialCardView>(R.id.card),
+            header = binding.sectionResults.findViewById<LinearLayout>(R.id.header),
+            content = binding.sectionResults.findViewById<FrameLayout>(R.id.content),
+            btnToggle = binding.sectionResults.findViewById(R.id.btnToggle),
+            btnClear = binding.sectionResults.findViewById(R.id.btnClear)
+        ).apply {
+            setTitle("Results")
+            setClearVisible(true)
+            wireClicks()
+        }
 
         val modeItems = listOf("Geo Converter", "Angle Converter", "Distance Converter")
 
-        val hintsAndLabels = mutableMapOf(
+        val hints = mutableMapOf(
+            "hint_lat" to "Latitude",
             "hint_easting" to "Easting",
-            "label_easting" to "E:",
-
             "hint_x_coord" to "X-Coordinate",
-            "label_x_coord" to "X:",
 
+            "hint_lon" to "Longitude",
             "hint_northing" to "Northing",
-            "label_northing" to "N:",
-
-            "hint_y_coord" to "Y-Coordinate",
-            "label_y_coord" to "Y:"
+            "hint_y_coord" to "Y-Coordinate"
         )
 
 
@@ -118,24 +145,33 @@ class ConverterActivity : BaseActivity() {
                 KEY_VALUE,
                 "Enter Value(s)",
                 true,
-                hintsLabels = hintsAndLabels
+                hintsLabels = hints
             )
         )
 
         formAdapter = FormAdapter(items)
         binding.includeForm.formTitle.visibility = View.GONE
-        binding.includeForm.formSubtitle.visibility = View.GONE
+        //binding.includeForm.formSubtitle.visibility = View.GONE
         binding.includeForm.rvInput.layoutManager = LinearLayoutManager(this)
         binding.includeForm.rvInput.adapter = formAdapter
 
         resultsAdapter = ResultsAdapter()
 
-        binding.includeResults.rvResults.adapter = resultsAdapter
-        binding.includeResults.rvResults.layoutManager = LinearLayoutManager(this)
-        binding.includeResults.rvResults.isNestedScrollingEnabled = false
+        resultsBinding.rvResults.adapter = resultsAdapter
+        resultsBinding.rvResults.layoutManager = LinearLayoutManager(this)
+        resultsBinding.rvResults.isNestedScrollingEnabled = false
+        resultsBinding.tvResultsTitle.visibility = View.GONE
+
         /*binding.btnConvert.setOnClickListener {
             resultsAdapter.submitList(results)
         }*/
+
+        formAdapter.state.addListener { key ->
+            if (key == KEY_CATEGORY || key == KEY_UNIT) {
+                secR.setExpanded(false)
+            }
+        }
+
 
 
         /*fun modeAt(): Mode = when (spMode.selectedItemPosition) {
@@ -219,6 +255,90 @@ class ConverterActivity : BaseActivity() {
         }*/
 
         binding.btnConvert.setOnClickListener {
+            // Optional: prevent double taps during computation
+            binding.btnConvert.isEnabled = false
+
+            try {
+                formAdapter.clearAllErrors() // if you have this; otherwise ignore
+
+                val category = formAdapter.state.getString(KEY_CATEGORY)
+                if (category.isNullOrBlank()) {
+                    //formAdapter.setError(KEY_CATEGORY, "Choose a converter type")
+                    return@setOnClickListener
+                }
+
+                val unit = formAdapter.state.getString(KEY_UNIT)
+                if (unit.isNullOrBlank()) {
+                    //formAdapter.setError(KEY_UNIT, "Choose units/type")
+                    return@setOnClickListener
+                }
+
+                val results = when (Mode.valueOf(category)) {
+                    Mode.GEO -> {
+                        val type = GeoInputType.valueOf(unit)
+
+                        // Fetch only what the selected type needs:
+                        val ex = formAdapter.state.getString("ex_coord").orEmpty()
+                        val ny = formAdapter.state.getString("ny_coord").orEmpty()
+                        val z  = formAdapter.state.getString("z_coord").orEmpty()
+                        val zone = formAdapter.state.getString("utm_zone") ?: "0"
+                        val hemi = formAdapter.state.getBoolean("utm_hemisphere") ?: true
+
+                        val latlon = parseGeoInputToLatLon(
+                            type = type,
+                            inputEX = ex,
+                            inputNY = ny,
+                            inputZ = z,
+                            zone = zone,
+                            hemiNorth = hemi
+                        )
+
+                        formatAllGeoOutputs(latlon, zone, hemi)
+                    }
+
+                    Mode.ANGLE -> {
+                        val v = formAdapter.state.getString("ex_coord")?.toDoubleOrNull()
+                        if (v == null) {
+                            binding.includeForm.tvError.text = "Enter a number"
+                            return@setOnClickListener
+                        }
+                        val ang = parseAngleToRadians(AngleInputType.valueOf(unit), v)
+                        formatAllAngleOutputs(ang)
+                    }
+
+                    Mode.DISTANCE -> {
+                        val v = formAdapter.state.getString("ex_coord")
+                        if (v.isNullOrBlank()) {
+                            binding.includeForm.tvError.text = "Enter a number"
+                            return@setOnClickListener
+                        }
+                        parseDistance(DistanceInputType.valueOf(unit), v)
+                    }
+                }
+
+                binding.includeForm.tvError.visibility = View.GONE
+                resultsAdapter.submitList(results)
+                binding.sectionResults.visibility = View.VISIBLE
+                secR.setExpanded(true)
+
+                // IMPORTANT: don't clear everything.
+                // Either do nothing, or clear only specific text inputs:
+                //formAdapter.state.set("ex_coord", "")
+                //formAdapter.state.set("ny_coord", "")
+                //formAdapter.state.set("z_coord", "")
+                //formAdapter.notifyDataSetChanged()
+
+            } catch (e: Exception) {
+                Log.e("Converter", "Convert failed", e)
+                binding.includeForm.tvError.visibility = View.VISIBLE
+                binding.includeForm.tvError.text = e.message ?: "Conversion failed"
+            } finally {
+                binding.btnConvert.isEnabled = true
+            }
+        }
+
+
+        /*binding.btnConvert.setOnClickListener {
             try {
                 val category = formAdapter.state.getString(KEY_CATEGORY) ?: return@setOnClickListener
                 val unit = formAdapter.state.getString(KEY_UNIT) ?: return@setOnClickListener
@@ -264,7 +384,7 @@ class ConverterActivity : BaseActivity() {
 
         }
 
-        /*btn.setOnClickListener {
+        btn.setOnClickListener {
             try {
                 if (resultsAdapter.itemCount > 0) updateUiForSelection()
                 val input = etInput.text.toString().trim()
@@ -316,11 +436,11 @@ class ConverterActivity : BaseActivity() {
 
     fun setGeoTypes(geoType: GeoInputType): String {
         return when (geoType) {
-            GeoInputType.LATLON -> "Lat,Lon  e.g. 31.778,35.235"
+            GeoInputType.LATLON -> "Lat,Lon  e.g. 31.778, 35.235"
             GeoInputType.DMS -> "DMS  e.g. 31 46 41 N, 35 14 06 E"
-            GeoInputType.UTM -> "UTM (+zone/hemi)  e.g. 0691000374800 "
+            GeoInputType.UTM -> "UTM (+zone/hemi)  e.g. 069100, 0374800 "
             GeoInputType.MGRS -> "MGRS string  e.g. 36SYF1234567890"
-            GeoInputType.ITM -> "ITM e,n  e.g. 219529.584,626907.39"
+            GeoInputType.ITM -> "ITM e,n  e.g. 219529.584, 626907.39"
             GeoInputType.WEB_MERCATOR -> "Web Mercator (x,y meters)"
             GeoInputType.ECEF -> "ECEF (x,y,z meters)"
         }
@@ -359,15 +479,12 @@ class ConverterActivity : BaseActivity() {
         inputEX: String,
         inputNY: String = "",
         inputZ: String = "",
-        zone: Int,
+        zone: String = "",
         hemiNorth: Boolean
 
     ): LatLon {
         try {
-            Log.d(
-                "parseGeo:",
-                "GeoType=${type}, EX= ${inputEX}, NY=${inputNY}, Z=${inputZ}, Zone=${zone}, Hemi=${hemiNorth}"
-            )
+            binding.includeForm.tvError.visibility = View.GONE
             return when (type) {
                 // "lat,lon"
                 GeoInputType.LATLON -> {
@@ -407,8 +524,8 @@ class ConverterActivity : BaseActivity() {
 
             }
         } catch (e: Exception) {
-            Log.e("Converter", "GEO convert failed", e)
-            formAdapter.setError("ex_coord", e.message ?: "Conversion error")
+            binding.includeForm.tvError.visibility = View.VISIBLE
+            binding.includeForm.tvError.text = e.message ?: "Conversion error"
             throw e
         }
         //return null
@@ -473,28 +590,41 @@ class ConverterActivity : BaseActivity() {
         sb.appendLine(EcefConverter.format(LatLonConverter.latLonToEcef(latlon)))
 
         return sb.toString()*/
-    private fun formatAllGeoOutputs(latlon: LatLon, zone: Int = 0, hemiNorth: Boolean = true): List<ResultItem> {
+    private fun formatAllGeoOutputs(latlon: LatLon, zone: String = "0", hemiNorth: Boolean = true): List<ResultItem> {
+        val utmValue = if (latlon.lat !in -80.0..84.0) "Utm not defined"
+                       else UtmConverter.format(LatLonConverter.latLonToUtm(latlon, zone, hemiNorth))
+
+        val wbIsClamped = if (latlon.lat !in -85.0511..85.0511) " (Clamped)" else ""
+
         return listOf(
             ResultItem("WGS84 Decimal", LatLonConverter.format(latlon)),
             ResultItem("DMS", DmsConverter.format(LatLonConverter.latLonToDms(latlon))),
-            ResultItem("UTM", UtmConverter.format(LatLonConverter.latLonToUtm(latlon, zone, hemiNorth))),
+            ResultItem("UTM", utmValue),
             ResultItem("MGRS", MgrsConverter.format(LatLonConverter.latLonToMgrs(latlon))),
             ResultItem("ITM", ItmConverter.format(LatLonConverter.latLonToItm(latlon))),
-            ResultItem("Web Mercator", MercatorConverter.format(LatLonConverter.latLonToWebMercator(latlon))),
+            ResultItem("Web Mercator$wbIsClamped", MercatorConverter.format(LatLonConverter.latLonToWebMercator(latlon))),
             ResultItem("ECEF", EcefConverter.format(LatLonConverter.latLonToEcef(latlon)))
         )
 
     }
 
     private fun parseAngleToRadians(type: AngleInputType, value: Double): Double {
-        return when (type) {
-            AngleInputType.DEGREES -> AngleConverter.degreesToRadians(value)
-            AngleInputType.RADIANS -> value
-            AngleInputType.NATO_MILS -> AngleConverter.milsNatoToRadians(value)
-            AngleInputType.ARTILLERY_MILS -> AngleConverter.milsArtilleryToRadians(value)
-            AngleInputType.SWEDISH_MILS -> AngleConverter.milsSwedishToRadians(value)
-            AngleInputType.GRADIANS -> AngleConverter.gradiansToRadians(value)
-            AngleInputType.TURNS -> AngleConverter.turnsToRadians(value)
+        try {
+            binding.includeForm.tvError.visibility = View.GONE
+
+            return when (type) {
+                AngleInputType.DEGREES -> AngleConverter.degreesToRadians(value)
+                AngleInputType.RADIANS -> value
+                AngleInputType.NATO_MILS -> AngleConverter.milsNatoToRadians(value)
+                AngleInputType.ARTILLERY_MILS -> AngleConverter.milsArtilleryToRadians(value)
+                AngleInputType.SWEDISH_MILS -> AngleConverter.milsSwedishToRadians(value)
+                AngleInputType.GRADIANS -> AngleConverter.gradiansToRadians(value)
+                AngleInputType.TURNS -> AngleConverter.turnsToRadians(value)
+            }
+        } catch (e: Exception) {
+            binding.includeForm.tvError.visibility = View.VISIBLE
+            binding.includeForm.tvError.text = e.message ?: "Conversion Failed"
+            throw e
         }
     }
 
@@ -523,10 +653,7 @@ class ConverterActivity : BaseActivity() {
 
     private fun parseDistance(type: DistanceInputType, input: String): List<ResultItem> {
         var meters: Double
-        var kilometers: Double
-        var feet: Double
-        var miles: Double
-        var naut_miles: Double
+
         return when (type) {
             DistanceInputType.METERS -> {
                 meters = input.toDouble()
@@ -595,5 +722,7 @@ class ConverterActivity : BaseActivity() {
 
 
     }
+
+
 
 }

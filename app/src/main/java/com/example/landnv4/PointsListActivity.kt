@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -26,6 +27,7 @@ class PointsListActivity : BaseActivity() {
         const val EXTRA_BANK_TYPE = "bank_type"
     }
 
+    override fun getLayoutResId() = R.layout.activity_points_list
     private lateinit var binding: ActivityPointsListBinding
     private val vm: PointsListViewModel by viewModels()
     private lateinit var type: BankType
@@ -46,8 +48,9 @@ class PointsListActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityPointsListBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        val root = contentContainer.getChildAt(0)
+        binding = ActivityPointsListBinding.bind(root)
+        //setContentView(binding.root)
 
         type = BankType.valueOf(intent.getStringExtra(EXTRA_BANK_TYPE) ?: BankType.ANCHORING.name)
 
@@ -55,6 +58,8 @@ class PointsListActivity : BaseActivity() {
 
         binding.rvPoints.layoutManager = LinearLayoutManager(this)
         binding.rvPoints.adapter = adapter
+
+        binding.tvStatus.text = "No Saved ${type.title()}"
 
         binding.etSearch.addTextChangedListener { text ->
             currentQuery = text?.toString().orEmpty()
@@ -67,8 +72,8 @@ class PointsListActivity : BaseActivity() {
         type = runCatching { BankType.valueOf(raw ?: BankType.ANCHORING.name) }
             .getOrElse { BankType.ANCHORING }
 
-
-        binding.fabAdd.setOnClickListener {
+        binding.btnAdd.text = "Add New ${type.title().dropLast(1)}"
+        binding.btnAdd.setOnClickListener {
             openEdit(null)
         }
 
@@ -90,7 +95,6 @@ class PointsListActivity : BaseActivity() {
                 }
             }
         }
-
 
     }
 
@@ -116,6 +120,8 @@ class PointsListActivity : BaseActivity() {
     }
 
     private fun applyFilter() {
+        binding.tvStatus.isVisible = fullList.isEmpty()
+
         if (currentQuery.isBlank()) {
             adapter.submitList(fullList)
             return

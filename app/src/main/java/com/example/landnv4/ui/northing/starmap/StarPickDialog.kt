@@ -77,7 +77,7 @@ fun StarPickDialog(
             Button(onClick = {
                 try {
                     val z = zone.toIntOrNull() ?: error("Zone required")
-                    val utmObj = UtmParser.parseUtm(utm.take(6), utm.substring(6,13), z, northHemisphere)
+                    val utmObj = UtmParser.parseUtm(utm.take(6), utm.substring(6,13), zone, northHemisphere)
                     val (lat, lon) = UtmConverter.utmToLatLon(utmObj)
                     val observer = Observer(latDeg = lat, lonDeg = lon)
 

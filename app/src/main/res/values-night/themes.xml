@@ -1,16 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.LandNv4" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/color_primary</item>
-        <item name="colorPrimaryVariant">@color/color_primary_variant</item>
-        <item name="colorOnPrimary">@color/color_on_primary</item>
 
+    <style name="Theme.LandNv4" parent="Theme.Material3.DayNight.NoActionBar">
+
+        <!-- Material3 primary colors -->
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorOnPrimary">@color/color_on_primary</item>
         <item name="colorSecondary">@color/color_secondary</item>
-        <item name="colorSecondaryVariant">@color/color_secondary_variant</item>
         <item name="colorOnSecondary">@color/color_on_secondary</item>
 
+        <!-- Background / surface -->
         <item name="android:windowBackground">@color/app_background</item>
         <item name="colorSurface">@color/app_surface</item>
         <item name="colorOnSurface">@color/app_on_surface</item>
+
+        <!-- IMPORTANT: opaque system bars (no drawing behind them) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- System bar icon contrast -->
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <item name="formBg">@color/card_bg</item>
+        <item name="resultsBg">?attr/colorSurfaceVariant</item>
+
     </style>
+
 </resources>
+
+
+
+    <!--
+    <?xml version="1.0" encoding="utf-8"?>
+    <resources>
+        <style name="Theme.LandNv4" parent="Theme.Material3.DayNight.NoActionBar">
+            <item name="colorPrimary">@color/color_primary</item>
+            <item name="colorPrimaryVariant">@color/color_primary_variant</item>
+            <item name="colorOnPrimary">@color/color_on_primary</item>
+
+            <item name="colorSecondary">@color/color_secondary</item>
+            <item name="colorSecondaryVariant">@color/color_secondary_variant</item>
+            <item name="colorOnSecondary">@color/color_on_secondary</item>
+
+            <item name="android:windowBackground">@color/app_background</item>
+            <item name="colorSurface">@color/app_surface</item>
+            <item name="colorOnSurface">@color/app_on_surface</item>
+        </style>
+    </resources>
+    -->

@@ -17,9 +17,16 @@ object HeightConverters {
     @TypeConverter
     fun toHeightType(value: String): HeightType =
         HeightType.valueOf(value)
+    @TypeConverter
+    fun toHeightTypeN(value: String?): HeightType? =
+        if (value == null) null else HeightType.valueOf(value)
 
     @TypeConverter
-    fun fromHeightType(type: HeightType): String =
-        type.name
+    fun HeightType?.fromHeightType(): String? =
+        this?.name
+
+    fun HeightType.toPrettyString(): String =
+        this.name.lowercase().replaceFirstChar { it.uppercase() }
+
 }
 

@@ -2,6 +2,7 @@ package com.example.landnv4.ui.form
 
 import com.example.landnv4.data.db.infobank.Converters
 import com.example.landnv4.data.db.infobank.HeightConverters
+import com.example.landnv4.data.db.infobank.HeightConverters.toPrettyString
 import com.example.landnv4.data.db.infobank.HeightType
 import com.example.landnv4.domain.geo.Utm
 import mil.nga.grid.Hemisphere
@@ -41,6 +42,7 @@ sealed interface FormItem {
         override val label: String,
         override val required: Boolean = false,
         val dependsOnKey: String? = null,
+        val onItemChanged: (() -> Unit)? = null,
         val optionsProvider: ((parentValue: String?) -> List<Pair<String, String>>)? = null,
 
         // fallback
@@ -133,7 +135,7 @@ sealed interface FormItem {
         override val required: Boolean = false,
         val valueKey: String = "height_value",
         val unitKey: String = "height_unit", // "METERS"/"FEET"
-        val units: List<String> = listOf("METERS", "FEET")
+        val units: List<String> = listOf("Meters", "Feet")
     ) : FormItem
 
 }

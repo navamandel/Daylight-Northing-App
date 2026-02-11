@@ -8,6 +8,9 @@
     <color name="color_primary_variant">#64B5F6</color>
     <color name="color_on_primary">#0B0B0B</color>
 
+    <color name="color_primary_container">#1E3A5F</color>
+    <color name="color_on_primary_container">#D6E4FF</color>
+
     <color name="color_secondary">#80CBC4</color>
     <color name="color_secondary_variant">#4DB6AC</color>
     <color name="color_on_secondary">#0B0B0B</color>
@@ -16,4 +19,39 @@
     <color name="app_background">#121212</color>
     <color name="app_surface">#1E1E1E</color>
     <color name="app_on_surface">#EEEEEE</color>
+
+    <!-- App background -->
+    <color name="app_bg">#0E1116</color>
+
+    <!-- Text -->
+    <color name="text_primary">#E6EDF5</color>
+    <color name="text_secondary">#B7C3D4</color>
+
+    <!-- Brand / accent -->
+    <color name="brand">#E6EDF5</color>
+    <color name="brand_on">#081018</color>
+
+    <color name="divider">#263241</color>
+
+    <!-- Error -->
+    <color name="error">#FF6B6B</color>
+
+    <!-- Section card background (your big "Point A" container) -->
+    <color name="card_bg">#131A23</color>
+
+    <!-- Header strip (optional, slightly brighter) -->
+    <color name="card_header_bg">#18222E</color>
+
+    <!-- Input background (filled fields) -->
+    <color name="card_input_bg">#111821</color>
+
+    <!-- Borders / outlines -->
+    <color name="card_stroke">#1F2A36</color> <!-- muted blue-gray -->
+    <color name="card_input_stroke">#3B4757</color>
+
+    <color name="card_b_bg">#121C1D</color>          <!-- deep teal-black -->
+    <color name="card_b_header_bg">#1A2A2B</color>   <!-- lifted teal header -->
+    <color name="card_b_stroke">#223638</color>      <!-- teal-blue gray stroke -->
+
+
 </resources>

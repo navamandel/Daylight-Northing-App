@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.landnv4.data.db.infobank.HeightConverters.toPrettyString
 import com.example.landnv4.databinding.RowPointItemBinding
 
 class PointsAdapter(
@@ -30,9 +31,9 @@ class PointsAdapter(
     inner class VH(private val binding: RowPointItemBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(item: PointItem) {
             binding.tvName.text = item.name
-            binding.tvUtmLocation.text =
-                "UTM: E=${item.utm.easting}, N=${item.utm.northing} | Location: ${item.location}"
-            binding.tvHeight.text = "Height: ${item.height} ${item.heightType.name}"
+            binding.tvUtm.text = "UTM: E=${item.utm.easting}, N=${item.utm.northing}"
+            binding.tvLocation.text = "Location: ${item.location}"
+            binding.tvHeight.text = "Height: ${item.height} ${item.heightType.toPrettyString()}"
 
             binding.root.setOnClickListener { onClick(item) }
             binding.btnDelete.setOnClickListener { onDelete(item) }

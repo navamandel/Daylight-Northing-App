@@ -46,7 +46,7 @@ class RequiredInputsDialog : DialogFragment() {
             .setCancelable(false)
             .setPositiveButton("Save", null) // we override to prevent auto-dismiss on invalid
             .setNegativeButton("Cancel") { _, _ -> dismiss() }
-            .setNeutralButton("Clear", null)
+            .setNeutralButton("Reset", null)
             .create()
 
         dialog.setOnShowListener {
@@ -94,7 +94,6 @@ class RequiredInputsDialog : DialogFragment() {
             }
 
             binding.includeForm.formTitle.text = "User Information"
-            binding.includeForm.formSubtitle.text = "Enter Your Location, Date and Time"
             binding.includeForm.rvInput.apply {
                 layoutManager = LinearLayoutManager(requireContext())
                 adapter = formAdapter
@@ -102,54 +101,51 @@ class RequiredInputsDialog : DialogFragment() {
             }
 
 
-            val btn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            btn.setOnClickListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
 
-                val d = formAdapter.state.getString("date").toString().trim()
-                val t = formAdapter.state.getString("time").toString().trim()
+                try {
+                    val d = formAdapter.state.getString("date").toString().trim()
+                    val t = formAdapter.state.getString("time").toString().trim()
+                    val u = parseUtm(
+                        formAdapter.state.getString("utm_easting").toString().trim(),
+                        formAdapter.state.getString("utm_northing").toString().trim(),
+                        formAdapter.state.getString("utm_zone").toString().trim(),
+                        formAdapter.state.getBoolean("utm_hemisphere") ?: true
+                    )
 
-                val zoneStr = formAdapter.state.getString("utm_zone")?.trim()
-                val zone = zoneStr?.toIntOrNull()
-                val hemi = formAdapter.state.getBoolean("utm_hemisphere")
+                    HomeInputValidation.validateDateIso(d)
+                    HomeInputValidation.validateTimeHundredth(t)
 
-                if (zone == null) {
-                    binding.tvError.text = "Please choose a UTM zone (1–60)"
-                    return@setOnClickListener
+                    binding.tvError.visibility = View.GONE
+                    (activity as? Listener)?.onInputsSaved(HomeInputs(d, t, u))
+                    formAdapter.state.clearAllValues()
+                    dismiss()
+                } catch(e: Exception) {
+                    binding.tvError.visibility = View.VISIBLE
+                    binding.tvError.text = e.message
                 }
-                if (hemi == null) {
-                    binding.tvError.text = "Please choose hemisphere (North/South)"
-                    return@setOnClickListener
-                }
-                val u = parseUtm(
-                    formAdapter.state.getString("utm_easting").toString().trim(),
-                    formAdapter.state.getString("utm_northing").toString().trim(),
-                    zone,
-                    hemi
-                )
 
-                val dateOk = HomeInputValidation.validateDateIso(d)
-                val timeOk = HomeInputValidation.validateTimeHundredth(t)
-                val utmOk = HomeInputValidation.validateUtm13(u)
-
-                when {
-                    dateOk != null -> binding.tvError.text = "Date must be YYYY-MM-DD"
-                    timeOk != null -> binding.tvError.text = "Time must be HH:MM:SS.ss (hundredths)"
-                    utmOk != null -> binding.tvError.text = utmOk
-                    else -> {
-                        binding.tvError.text = ""
-                        (activity as? Listener)?.onInputsSaved(HomeInputs(d, t, u))
-
-                        dismiss()
-                    }
-                }
             }
 
-            val clearBtn = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
-            clearBtn.setOnClickListener {
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener {
                 // wipe stored values
-                AppInputsStore.clear(requireContext())
+                //AppInputsStore.clear(requireContext())
+                if (stored != null) {
+                    formAdapter.state.set("show_current", true)
+                    formAdapter.state.set("utm_easting", stored.utm13.easting.toString())
+                    formAdapter.state.set("utm_northing", stored.utm13.northing.toString())
+                    formAdapter.state.set("utm_zone", stored.utm13.zone.toString())
+                    formAdapter.state.set("utm_hemisphere", stored.utm13.hemisphereNorth)
 
-                formAdapter.state.clearAllValues()
+                    formAdapter.state.set("date", stored.dateIso)
+                    formAdapter.state.set("time", stored.timeHundredth)
+                } else {
+                    formAdapter.state.clearAllValues(listOf("utm_easting", "utm_northing", "utm_zone",
+                        "utm_hemisphere", "date", "time"))
+                }
+
+                formAdapter.notifyDataSetChanged()
+
             }
         }
 
